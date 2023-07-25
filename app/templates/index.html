@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100%;
+            padding: 50px;
+        }
+
+        .dashboard-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .dashboard-partition {
+            position: relative;
+            width: {{ partition_width }}px; /* Replace with Flask variable */
+            height: {{ partition_height }}px; /* Replace with Flask variable */
+            /*border: 1px dashed #ccc;*/
+            text-align: center;
+            padding: 10px;
+            margin: {{ padding/2 }}px; /* Replace with Flask variable */
+        }
+
+        .dashboard-item {
+            width: 100%;
+            height: 100%;
+            /*border: 1px solid #ccc;
+            /*cursor: move; */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #okButton {
+  position: fixed;
+  bottom: 20px;
+  left: 80px;
+  width: 50px;
+  height: 50px;
+  background-color: #6FABF0;
+  border-radius: 50%;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add a subtle box shadow */
+  transition: background-color 0.3s ease; /* Add a smooth transition effect */
+
+  /* Add a gradient background */
+  background-image: linear-gradient(to bottom, #6FABF0, #357AE8);
+}
+
+#okButton:hover {
+  background-color: #357AE8; /* Change the background color on hover */
+}
+        #editButton {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  background-color: #6FABF0;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add a subtle box shadow */
+  transition: background-color 0.3s ease; /* Add a smooth transition effect */
+
+  /* Add a gradient background */
+  background-image: linear-gradient(to bottom, #6FABF0, #357AE8);
+}
+
+#editButton:hover {
+  background-color: #357AE8; /* Change the background color on hover */
+}
+        
+    </style>
+    <link rel="stylesheet" href="static/css/styles.css">
+</head>
+<body>
+
+    <svg class="network-animation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+
+    <!-- Add more circles as needed -->
+  </svg>
+
+    <div class="top-bar">
+        <div class="logo"></div>
+        <!-- Add other elements or text in the top bar if needed -->
+        <div id="add-item-button" class="add-button">
+           <span class="plus-icon">+</span>
+        </div>
+    </div>
+
+    <div class="dashboard" id="dashboardContainer"></div>
+    
+    <div id="add-item-modal" class="modal">
+
+        <div class="modal-content">
+                
+            <div id="loading-div">
+            <div class="loader"></div>
+        </div>
+            <div id="success-message" class="success-message success">Item added successfully</div>
+            <div id="error-message" class="success-message error">Item addition failed</div>
+            <div id="success-delete" class="success-message success-delete">Item deleted successfully</div>
+            <div id="error-delete" class="success-message error-delete">Item deleted failed</div>
+            <span class="close">&times;</span>
+            <h2>Add Item</h2>
+            <label for="item-type">Type:</label>
+            <select id="item-type" class="form-control">
+            <option value="temperature">Temperature</option>
+            <option value="humidity">Humidity</option>
+            <option value="motion_sensor">Motion Sensor</option>
+            <option value="door_sensor">Door Sensor</option>
+            <option value="glass_break">Glass Break</option>
+            <option value="switch">Switch</option>
+            <option value="siren">Siren</option>
+        </select>
+            <label for="item-id">ID:</label>
+            <input id="item-id" type="text" class="form-control" placeholder="Enter ID">
+            <label for="item-protocol">Communication Protocol:</label>
+            <select id="item-protocol" class="form-control">
+            <option value="lora">LoRa</option>
+            <option value="wifi">Wi-Fi</option>
+        </select>
+            <button id="add-item-confirm" class="btn btn-primary">Add</button>
+            <div id="keypad" class="keypad">
+            <div class="keypad-row">
+                <div class="key keypad-key" >1</div>
+                <div class="key keypad-key" >2</div>
+                <div class="key keypad-key" >3</div>
+            </div>
+            <div class="keypad-row">
+                <div class="key keypad-key" >4</div>
+                <div class="key keypad-key" >5</div>
+                <div class="key keypad-key" >6</div>
+            </div>
+            <div class="keypad-row">
+                <div class="key keypad-key" >7</div>
+                <div class="key keypad-key" >8</div>
+                <div class="key keypad-key" >9</div>
+            </div>
+            <div class="keypad-row">
+                <div class="key keypad-key delete" >Delete</div>
+                <div class="key keypad-key" >0</div>
+            </div>
+        </div>
+            <h3>Delete Item</h3>
+            <select id="item-list" class="form-control"></select>
+            <button id="delete-item" class="btn btn-danger">Delete Item</button>
+                
+        </div>
+    </div>
+    <button id="editButton">Edit</button>
+    <button id="okButton">OK</button>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+    
+    <script>
+        // Get values from Flask
+        var padding = {{ padding }}; // Replace with Flask variable
+        var numPerRow = {{ num_per_row }}; // Replace with Flask variable
+        var numItems = {{ num_items }}; // Replace with Flask variable
+        // Add sample items to partitions
+        var items = {{ item_locations|tojson }};
+        var itemLocations = {{ item_locations|tojson }};
+    </script>
+    
+    <script src="static/js/network-animation.js"></script>
+    <script src="static/js/dashboard.js"></script>
+    
+    
+    <script src="static/js/socket-handler.js"></script>
+    <script src="static/js/item-management.js"></script>
+
+    <script src="static/js/keypad-handler.js"></script>
+    
+    <script src="static/js/footer.js"></script>
+
+
+
+</body>
+</html>
