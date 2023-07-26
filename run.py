@@ -10,4 +10,4 @@ from app import app,socketio,check_push_alerts
 t = threading.Thread(target=check_push_alerts)
 t.start()
 
-socketio.run(app, debug=True, host='0.0.0.0', port=2000,allow_unsafe_werkzeug=True)
+socketio.run(app, debug=True, host='0.0.0.0', port=5555,allow_unsafe_werkzeug=True)

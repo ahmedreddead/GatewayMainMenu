@@ -197,7 +197,6 @@ class Database :
             print("Failed to insert into MySQL table {}".format(error))
             return error
 
-
     def insert_sensor_to_dashboard (self,dashboard_id , sensor_id):
         try:
             cursor = self.connection.cursor()
@@ -331,7 +330,6 @@ class Database :
             print("Failed to delete from MySQL table: {}".format(error))
             return error
 
-
     def delete_actuator(self, actuatorid, type):
         try:
             cursor = self.connection.cursor()
@@ -359,8 +357,6 @@ class Database :
         except mysql.connector.Error as error:
             print("Failed to delete from MySQL table: {}".format(error))
             return error
-
-
 
     def get_actions(self , action_id ):
         try:
@@ -409,12 +405,72 @@ class Database :
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
             return error
+
     def delete_push_alert(self, action_id):
         try:
             cursor = self.connection.cursor()
             # Check if the sensor ID already exists in the sensors table
             cursor.execute("DELETE FROM push_alert WHERE action_id = %s", (action_id,))
             self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+
+
+    def get_events_by_user(self , userid):
+        try:
+            cursor = self.connection.cursor()
+            # Check if the sensor ID already exists in the sensors table
+            check_query = """SELECT a.`event_id`,
+                            GROUP_CONCAT(DISTINCT CONCAT( '[' , d.`door_sensor_id`, ',', d.`door_sensor_status`, ']'  )) AS event_door,
+                            GROUP_CONCAT(DISTINCT CONCAT( '[', m.`motion_sensor_id`, ',', m.`motion_sensor_status` , ']' )) AS event_motion
+                            FROM
+                                `automation` a
+                            JOIN
+                                `event_door` d ON a.`event_id` = d.`event_id`
+                            JOIN
+                                `event_motion` m ON a.`event_id` = m.`event_id`
+                            WHERE
+                                a.`user_id` = %s
+                                AND a.`event_id` IN (SELECT `event_id` FROM `automation` WHERE `user_id` = %s )
+                            GROUP BY
+                                a.`event_id`;
+                            """
+            cursor.execute(check_query , userid, userid)
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+
+    def get_actions_by_user(self , userid):
+        try:
+            cursor = self.connection.cursor()
+            # Check if the sensor ID already exists in the sensors table
+            check_query = """SELECT
+                                    a.`action_id`,
+                                    GROUP_CONCAT(DISTINCT CONCAT( '[',s.`siren_id`, ',', s.`siren_status`, ',', s.`order_number` , ']')) AS action_siren,
+                                    GROUP_CONCAT(DISTINCT CONCAT('[', sw.`switch_id`, ',', sw.`switch_status`, ',', sw.`order_number`, ']')) AS action_switch,
+                                    GROUP_CONCAT(DISTINCT CONCAT('[' , d.`duration`, ',', d.`order_number`, ']')) AS delay
+                                FROM
+                                    `automation` a
+                                LEFT JOIN
+                                    `action_siren` s ON a.`action_id` = s.`action_id`
+                                LEFT JOIN
+                                    `action_switch` sw ON a.`action_id` = sw.`action_id`
+                                LEFT JOIN
+                                    `delay` d ON a.`action_id` = d.`action_id`
+                                WHERE
+                                    a.`user_id` = %s
+                                    AND a.`action_id` IN (SELECT `action_id` FROM `automation` WHERE `user_id` = %s )
+                                GROUP BY
+                                    a.`action_id`;
+                                """
+            cursor.execute(check_query , userid, userid)
+            result = cursor.fetchall()
+            return result
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
             return error

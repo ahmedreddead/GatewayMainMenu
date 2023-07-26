@@ -1,83 +1,4 @@
- .dashboard {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: flex-start;
-            height: 100%;
-            padding: 50px;
-        }
 
-        .dashboard-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .dashboard-partition {
-            position: relative;
-            width: {{ partition_width }}px; /* Replace with Flask variable */
-            height: {{ partition_height }}px; /* Replace with Flask variable */
-            /*border: 1px dashed #ccc;*/
-            text-align: center;
-            padding: 10px;
-            margin: {{ padding/2 }}px; /* Replace with Flask variable */
-        }
-
-        .dashboard-item {
-            width: 100%;
-            height: 100%;
-            /*border: 1px solid #ccc;
-            /*cursor: move; */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #okButton {
-  position: fixed;
-  bottom: 20px;
-  left: 80px;
-  width: 50px;
-  height: 50px;
-  background-color: #6FABF0;
-  border-radius: 50%;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add a subtle box shadow */
-  transition: background-color 0.3s ease; /* Add a smooth transition effect */
-
-  /* Add a gradient background */
-  background-image: linear-gradient(to bottom, #6FABF0, #357AE8);
-}
-
-#okButton:hover {
-  background-color: #357AE8; /* Change the background color on hover */
-}
-        #editButton {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  width: 50px;
-  height: 50px;
-  background-color: #6FABF0;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add a subtle box shadow */
-  transition: background-color 0.3s ease; /* Add a smooth transition effect */
-
-  /* Add a gradient background */
-  background-image: linear-gradient(to bottom, #6FABF0, #357AE8);
-}
-
-#editButton:hover {
-  background-color: #357AE8; /* Change the background color on hover */
-}
 
 
 
@@ -105,21 +26,21 @@ animation: shinyAnimation 3s ease-in-out infinite;
   }
 }
 
-        .network-animation {
+.network-animation {
   position: fixed;
-  top: 0;
+  top: 80px;
   left: 0;
-  width: 80%;
-  height: 80%;
+  width: 100%;
+  height: 100%;
 }
 
-        .circle {
-  fill: gray; /* Gray color */
-  opacity: 0.5;
+.circle {
+  fill: darkblue; /* Gray color */
+  opacity: 0.3;
   animation: networkAnimation 10s linear infinite;
 }
     
-        @keyframes networkAnimation {
+@keyframes networkAnimation {
   0% {
     transform: translate(0, 0);
   }
@@ -137,18 +58,18 @@ animation: shinyAnimation 3s ease-in-out infinite;
   }
 }
 
-        .line {
-  stroke: gray; /* Gray color for the lines */
+.line {
+  stroke: darkblue; /* Gray color for the lines */
   opacity: 0.5;
-  stroke-width: 0.5px;
+  stroke-width: .2px;
 }
-        .top-bar {
+.top-bar {
             background-color: black;
-            height: 60px;
+            height: 56px;
             display: flex;
             align-items: center;
             padding: 0 10px;
-        }
+}
 
         .logo {
             width: 50px;

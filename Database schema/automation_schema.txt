@@ -1,0 +1,128 @@
+
+
+CREATE TABLE automation (
+  user_id INT NOT NULL,
+  event_id INT ,
+  action_id INT,
+  PRIMARY KEY (event_id, action_id),
+  FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+// INSERT INTO automation (user_id, event_id, action_id) VALUES (1, 35, 66);
+
+
+CREATE TABLE event_door (
+  event_id INT NOT NULL,
+  door_sensor_id INT NOT NULL,
+  door_sensor_status VARCHAR(50) NOT NULL,
+  triggerr INT NOT NULL,
+  UNIQUE (event_id, door_sensor_id),
+  CHECK (triggerr IN (0, 1)),
+  FOREIGN KEY (door_sensor_id) REFERENCES door_sensor (sensorid)
+);
+
+// INSERT INTO event_door (event_id, door_sensor_id, door_sensor_status, triggerr) VALUES (35, 9988, 'opened', 0);
+
+
+
+CREATE TABLE event_motion (
+  event_id INT NOT NULL,
+  motion_sensor_id INT NOT NULL,
+  motion_sensor_status VARCHAR(50) NOT NULL,
+  triggerr INT NOT NULL,
+  UNIQUE (event_id, motion_sensor_id),
+  CHECK (triggerr IN (0, 1)),
+  FOREIGN KEY (motion_sensor_id) REFERENCES motion_sensor (sensorid)
+);
+
+
+// INSERT INTO event_motion (event_id, motion_sensor_id , motion_sensor_status, triggerr) VALUES (35, 3321, 'Motion Detected', 0);
+
+
+CREATE TABLE event_switch_relay (
+  event_id INT NOT NULL,
+  switch_relay_actuator_id INT NOT NULL,
+  switch_relay_actuator_type VARCHAR(50) NOT NULL,
+  triggerr INT NOT NULL,
+  PRIMARY KEY (event_id, switch_relay_actuator_id),
+  CHECK (triggerr IN (0, 1)),
+  FOREIGN KEY (event_id) REFERENCES events (id),
+  FOREIGN KEY (switch_relay_actuator_id) REFERENCES switch_relay (actuatorid)
+);
+
+
+CREATE TABLE event_time (
+  event_id INT NOT NULL,
+  from_time DATETIME NOT NULL,
+  to_time DATETIME NOT NULL,
+  PRIMARY KEY (event_id),
+  FOREIGN KEY (event_id) REFERENCES events (id)
+);
+
+
+
+
+// actions 
+// new automation 
+
+CREATE TABLE automation (
+ event_id INT, 
+ user_id INT NOT NULL,
+ action_id INT,  
+ UNIQUE KEY unique_event_action (event_id, action_id),
+ FOREIGN KEY (user_id) REFERENCES users (id) 
+)
+
+
+CREATE TABLE action_siren (
+  action_id INT ,
+  siren_id INT NOT NULL,
+  siren_status VARCHAR(20) NOT NULL,
+  order_number INT NOT NULL,
+  CHECK (order_number >= 0),
+  UNIQUE (action_id, siren_id, order_number),
+  FOREIGN KEY (siren_id) REFERENCES actuators (actuatorid)
+);
+
+// insert into action_siren values (66 , 33 , 'on' , 1)
+// insert into action_siren values (66 , 33 , 'off' , 3)
+
+CREATE TABLE action_switch (
+  action_id INT ,
+  switch_id INT NOT NULL,
+  switch_status VARCHAR(20) NOT NULL,
+  order_number INT NOT NULL,
+  CHECK (order_number >= 0),
+  UNIQUE (action_id, switch_id, order_number),
+  FOREIGN KEY (switch_id) REFERENCES actuators (actuatorid)
+);
+
+
+CREATE TABLE delay (
+  action_id INT NOT NULL,
+  duration INT NOT NULL,
+  order_number INT NOT NULL,
+  UNIQUE (action_id, order_number),
+  CHECK (duration >= 0),
+  UNIQUE (order_number)
+);
+
+
+// insert into delay values ( 66 , 10 , 2 )
+
+
+
+CREATE TABLE push_alert {
+
+event_id INT NOT NULL ,
+
+action_id INT NOT NULL ,
+
+FORGIEN_KEY ( automation(event_id) = event_id , automation(action_id) = action_id )
+
+};
+
+
+
+
+

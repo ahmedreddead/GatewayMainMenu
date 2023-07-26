@@ -223,7 +223,7 @@ def login():
             session['user_id'] = user_id
             session['dashboard_id'] = 1
             session.permanent = True  # Enable permanent session
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('index'))
         else:
             error_message = "Invalid username or password"
     else:
@@ -427,7 +427,7 @@ def check_push_alerts():
                     t.start()
                     object.delete_push_alert(action_id)
             object.disconnect()
-            time.sleep(3)
+            time.sleep(10)
 
         except Exception as e:
             print("Error in push alerts:", e)
@@ -442,8 +442,17 @@ def create_event() :
     object.insert_event_motion(dictionary)
 
 
-
 def create_action():
+    pass
+
+
+def get_events_details () :
+
+
+    # { [ eventid : 556 , name : secure , description : [{sirenid : 5564 , status : on } , {delay : 5 } , {sirenid : 545 , status : off}] ,..... }
+
+
+
     pass
 
 

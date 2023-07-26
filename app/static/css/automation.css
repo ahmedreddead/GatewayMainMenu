@@ -1,0 +1,30 @@
+
+        /* New styles for the automation button */
+.automation-button {
+            background-color: rgb(240,239,239,.9); /* Use the same color as the top bar */
+    color: black;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 20px;
+    border: none; /* Remove the button border */
+    text-decoration: none; /* Remove underline from text inside button */
+    display: inline-block;
+}
+.home-button {
+            background-color: rgb(240,239,239,.9); /* Use the same color as the top bar */
+            color: black;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 20px;
+            border: none; /* Remove the button border */
+            text-decoration: none; /* Remove underline from text inside button */
+            display: inline-block;
+        }
+
+        /* Show the table when the button is clicked */
+.automation-table {
+            display: none;
+            /* Existing styles for the table... */
+}

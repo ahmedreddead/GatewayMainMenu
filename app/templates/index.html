@@ -84,9 +84,10 @@
 #editButton:hover {
   background-color: #357AE8; /* Change the background color on hover */
 }
-        
+
     </style>
     <link rel="stylesheet" href="static/css/styles.css">
+    <link rel="stylesheet" href="static/css/automation.css">
 </head>
 <body>
 
@@ -95,12 +96,38 @@
     <!-- Add more circles as needed -->
   </svg>
 
+
     <div class="top-bar">
         <div class="logo"></div>
         <!-- Add other elements or text in the top bar if needed -->
         <div id="add-item-button" class="add-button">
            <span class="plus-icon">+</span>
         </div>
+        <button class="home-button" id="homeButton">
+            <a >Home</a>
+        </button>
+        <button class="automation-button" id="automationButton">
+            <a >Automation</a>
+        </button>
+        
+
+    </div>
+
+    <!-- Automation Table -->
+    <div class="automation-table" id="automationTable">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event ID</th>
+                    <th>Event Name</th>
+                    <th>Description</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+            <tbody id="automationTableBody">
+                <!-- Populate this tbody with rows using JavaScript -->
+            </tbody>
+        </table>
     </div>
 
     <div class="dashboard" id="dashboardContainer"></div>
@@ -179,6 +206,10 @@
         var items = {{ item_locations|tojson }};
         var itemLocations = {{ item_locations|tojson }};
     </script>
+    <script>
+
+
+    </script>
     
     <script src="static/js/network-animation.js"></script>
     <script src="static/js/dashboard.js"></script>
@@ -188,8 +219,12 @@
     <script src="static/js/item-management.js"></script>
 
     <script src="static/js/keypad-handler.js"></script>
-    
+    <script src="static/js/automation.js"></script>
+
+
     <script src="static/js/footer.js"></script>
+    
+
 
 
 
