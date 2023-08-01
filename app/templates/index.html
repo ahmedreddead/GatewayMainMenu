@@ -115,19 +115,89 @@
 
     <!-- Automation Table -->
     <div class="automation-table" id="automationTable">
-        <table>
-            <thead>
+        <div class="container mt-5">
+            <h1>Events and Actions</h1>
+            <table class="table table-bordered mt-3">
+                <thead class="thead-dark">
                 <tr>
                     <th>Event ID</th>
-                    <th>Event Name</th>
-                    <th>Description</th>
-                    <th>Options</th>
+                    <th>Event Door</th>
+                    <th>Event Motion</th>
+                    <th>Action ID</th>
+                    <th>Actions</th>
+                    <th>Deactivate/Activate</th>
+                    <th>Delete</th>
                 </tr>
-            </thead>
-            <tbody id="automationTableBody">
-                <!-- Populate this tbody with rows using JavaScript -->
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+
+                    <td>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Door Sensor ID</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody id = "tableDoorEvent"></tbody>
+                        </table>
+
+
+                    </td>
+
+
+                    <td>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Motion Sensor ID</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody id = "tableMotionEvent"></tbody>
+                        </table>
+
+
+                    </td>
+                    <td>{{ row[3] }}</td>
+
+
+                    <td>
+
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Type</th>
+                                <th>Id</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody id = "actionsdata"></tbody>
+                        </table>
+
+
+
+                    </td>
+
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="toggleActivation(this, {{ row[3] }})">
+                            {% if row[7] %}
+                            Activate
+                            {% else %}
+                            Deactivate
+                            {% endif %}
+                        </button>
+                    </td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteAction({{ row[3] }})">Delete</button></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="dashboard" id="dashboardContainer"></div>
@@ -196,7 +266,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
     <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
-    
+
     <script>
         // Get values from Flask
         var padding = {{ padding }}; // Replace with Flask variable
@@ -208,7 +278,91 @@
     </script>
     <script>
 
+        function toggleActivation(button, actionId) {
+            // Here you can implement the JavaScript logic to toggle activation status.
+            // You may use AJAX to send a request to the server to update the activation status for the given actionId.
 
+            // For demonstration purposes, we'll simply toggle the text on the button.
+            if (button.textContent.trim() === 'Deactivate') {
+                button.textContent = 'Activate';
+            } else {
+                button.textContent = 'Deactivate';
+            }
+        }
+
+        function deleteAction(actionId) {
+            // Here you can implement the JavaScript logic to handle the delete action.
+            // You may use AJAX to send a request to the server to delete the action with the given actionId.
+
+            // For demonstration purposes, we'll just show an alert.
+            alert('Action with ID ' + actionId + ' will be deleted.');
+        }
+    </script>
+
+
+    <script>
+        var eventDoor = {{ door_event_data |safe }};
+        var eventMotion = {{ motion_event_data |safe }};
+        var actions_data = {{ actions_data |safe  }};
+
+        // Function to create a new table row and cells for each item in the data array
+        function createTableRow(item) {
+            var newRow = document.createElement('tr');
+            var idCell = document.createElement('td');
+            var statusCell = document.createElement('td');
+
+            idCell.textContent = item.id;
+            statusCell.textContent = item.status;
+
+            newRow.appendChild(idCell);
+            newRow.appendChild(statusCell);
+
+            return newRow;
+        }
+        function createTableRow_actions(item) {
+            var newRow = document.createElement('tr');
+
+            var orderCell = document.createElement('td');
+            var typeCell = document.createElement('td');
+            var idCell = document.createElement('td');
+            var statusCell = document.createElement('td');
+
+            orderCell.textContent = item.order;
+            typeCell.textContent = item.type;
+            idCell.textContent = item.id;
+            statusCell.textContent = item.status;
+
+            newRow.appendChild(orderCell);
+            newRow.appendChild(typeCell);
+            newRow.appendChild(idCell);
+            newRow.appendChild(statusCell);
+
+            return newRow;
+        }
+
+        // Get the table body element
+        var tableBody = document.getElementById('tableDoorEvent');
+
+        // Loop through the data array and append each item to the table
+        eventDoor.forEach(function(item) {
+            var newRow = createTableRow(item);
+            tableBody.appendChild(newRow);
+        });
+
+        var tableBody = document.getElementById('tableMotionEvent');
+
+        eventMotion.forEach(function(item) {
+            var newRow = createTableRow(item);
+            tableBody.appendChild(newRow);
+        });
+
+
+        var tableBody = document.getElementById('actionsdata');
+
+        actions_data.forEach(function(item) {
+            var newRow = createTableRow_actions(item);
+            tableBody.appendChild(newRow);
+        });
     </script>
     
     <script src="static/js/network-animation.js"></script>
@@ -223,6 +377,9 @@
 
 
     <script src="static/js/footer.js"></script>
+
+
+
     
 
 

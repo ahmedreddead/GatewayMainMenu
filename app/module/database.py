@@ -41,6 +41,7 @@ class Database :
     def disconnect(self):
 
             if self.connection.is_connected():
+
                 self.connection.close()
                 #print("MySQL connection is closed")
     def ckeck_connection (self):
@@ -416,8 +417,6 @@ class Database :
             print("Failed to insert into MySQL table {}".format(error))
             return error
 
-
-
     def get_events_by_user(self , userid):
         try:
             cursor = self.connection.cursor()
@@ -437,13 +436,12 @@ class Database :
                             GROUP BY
                                 a.`event_id`;
                             """
-            cursor.execute(check_query , userid, userid)
+            cursor.execute(check_query , [str(userid), str (userid)],)
             result = cursor.fetchall()
             return result
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
             return error
-
 
     def get_actions_by_user(self , userid):
         try:
@@ -468,9 +466,115 @@ class Database :
                                 GROUP BY
                                     a.`action_id`;
                                 """
-            cursor.execute(check_query , userid, userid)
+            cursor.execute(check_query , [str(userid), str (userid)] )
             result = cursor.fetchall()
             return result
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
             return error
+
+    def check_insert_event_id(self, event_id , user_id):
+        try:
+            cursor = self.connection.cursor()
+            check_query = "SELECT event_id FROM automation WHERE user_id = %s"
+            cursor.execute(check_query, (user_id,))
+            result = cursor.fetchone()
+            if event_id in result :
+                return False
+            else:
+                return True
+
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+    def check_insert_action_id(self, action_id , user_id):
+        try:
+            cursor = self.connection.cursor()
+            check_query = "SELECT action_id FROM automation WHERE user_id = %s"
+            cursor.execute(check_query, (user_id,))
+            result = cursor.fetchone()
+            if action_id in result :
+                return False
+            else:
+                return True
+
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+
+
+    def insert_new_automation(self , event_id , action_id , user_id ):
+        try:
+            cursor = self.connection.cursor()
+            insert_query = "INSERT INTO automation (event_id, user_id, action_id) VALUES (%s, %s, %s)"
+            # Data to be inserted
+            data = (event_id, user_id, action_id)
+            cursor.execute(insert_query, data)
+            self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+    def insert_door_event(self , event_id , door_sensor_id , door_status ):
+        try:
+            cursor = self.connection.cursor()
+            command = """INSERT INTO event_door (  event_id , door_sensor_id , door_sensor_status , triggerr ) VALUES (%s,%s,%s, %s) """
+            records_to_insert = ( event_id , door_sensor_id , door_status , 0 )
+            cursor.execute(command, records_to_insert)
+            self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+    def insert_motion_event(self , event_id , motion_sensor_id , motion_status ):
+        try:
+            cursor = self.connection.cursor()
+            command = """INSERT INTO event_door (  event_id , door_sensor_id , door_sensor_status , triggerr ) VALUES (%s,%s,%s, %s) """
+            records_to_insert = ( event_id , motion_sensor_id , motion_status , 0 )
+            cursor.execute(command, records_to_insert)
+            self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+    def get_events_and_action_by_user(self, userid):
+        try:
+            cursor = self.connection.cursor()
+            # Check if the sensor ID already exists in the sensors table
+            check_query = """
+        SELECT
+            a.`event_id`,
+            GROUP_CONCAT(DISTINCT CONCAT('[', d.`door_sensor_id`, ',', d.`door_sensor_status`, ']')) AS event_door,
+            GROUP_CONCAT(DISTINCT CONCAT('[', m.`motion_sensor_id`, ',', m.`motion_sensor_status`, ']')) AS event_motion,
+            a.`action_id`,
+            GROUP_CONCAT(DISTINCT CONCAT('[', s.`siren_id`, ',', s.`siren_status`, ',', s.`order_number`, ']')) AS action_siren,
+            GROUP_CONCAT(DISTINCT CONCAT('[', sw.`switch_id`, ',', sw.`switch_status`, ',', sw.`order_number`, ']')) AS action_switch,
+            GROUP_CONCAT(DISTINCT CONCAT('[', dl.`duration`, ',', dl.`order_number`, ']')) AS delay
+        FROM
+            `automation` a
+        LEFT JOIN
+            `event_door` d ON a.`event_id` = d.`event_id`
+        LEFT JOIN
+            `event_motion` m ON a.`event_id` = m.`event_id`
+        LEFT JOIN
+            `action_siren` s ON a.`action_id` = s.`action_id`
+        LEFT JOIN
+            `action_switch` sw ON a.`action_id` = sw.`action_id`
+        LEFT JOIN
+            `delay` dl ON a.`action_id` = dl.`action_id`
+        WHERE
+            a.`user_id` = %s
+            AND a.`event_id` IN (SELECT `event_id` FROM `automation` WHERE `user_id` = %s)
+        GROUP BY
+            a.`event_id`, a.`action_id`
+    """
+            cursor.execute(check_query ,(userid, userid))
+            result = cursor.fetchall()
+            cursor.close()
+            return result
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+

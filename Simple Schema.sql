@@ -102,9 +102,21 @@ CREATE TABLE `event_door` (
   `triggerr` int(11) NOT NULL,
   UNIQUE KEY `event_id` (`event_id`,`door_sensor_id`),
   KEY `door_sensor_id` (`door_sensor_id`),
-  CONSTRAINT `event_door_ibfk_1` FOREIGN KEY (`door_sensor_id`) REFERENCES `door_sensor` (`sensorid`),
+  CONSTRAINT `event_door_ibfk_1` FOREIGN KEY (`door_sensor_id`) REFERENCES `sensors` (`sensorid`),
   CONSTRAINT `CONSTRAINT_1` CHECK (`triggerr` in (0,1))
 );
+
+//
+
+
+ALTER TABLE event_door
+DROP FOREIGN KEY event_door_ibfk_1;
+
+ALTER TABLE event_door
+ADD CONSTRAINT event_door_ibfk_1 FOREIGN KEY (door_sensor_id) REFERENCES sensors (sensorid);
+
+//
+
 
 CREATE TABLE `event_motion` (
   `event_id` int(11) NOT NULL,
