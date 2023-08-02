@@ -50,7 +50,6 @@ def create_new_automation (object) :
     return (event_id,action_id)
 
 def add_door_event (event_id ,sensor_id ,sensor_status ):
-
     object = create_database_object()
     object.insert_door_event(event_id,sensor_id,sensor_status)
     object.disconnect()
@@ -60,6 +59,7 @@ def add_motion_event  (event_id ,sensor_id ,sensor_status ):
     object = create_database_object()
     object.insert_motion_event(event_id, sensor_id, sensor_status)
     object.disconnect()
+
 
 
 

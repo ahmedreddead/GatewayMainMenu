@@ -269,14 +269,73 @@
     <button id="addAutomationBtn" class="add-btn">+</button>
     <div id="overlay" class="overlay"></div>
     <div id="automationWindow" class="automation-window">
+        <span class="exit-btn" id="closeAutomationBtn">&times;</span>
         <h3>Add Automation</h3>
         <div class="events">
             <h4>Events</h4>
-            <button class="add-event-btn">Add Event</button>
+            <button class="add-event-btn">+</button>
+            <div id="eventOptions" style="display: none;">
+                <select id="eventType">
+                    <option value="">Select Type</option>
+                    <option value="motion_sensor">Motion Sensor</option>
+                    <option value="door_sensor">Door Sensor</option>
+                </select>
+                <select id="eventId" style="display: none;"></select>
+                <select id="eventStatus" style="display: none;">
+                    <option value="">Select Status</option>
+                    <option value="opened">Opened</option>
+                    <option value="closed">Closed</option>
+                    <option value="motion_detected">Motion Detected</option>
+                </select>
+                <button id="addEventBtn" style="display: none;">Add Event</button>
+            </div>
+
+            <table id="eventsTable" style="display: none;">
+                <thead>
+                <tr>
+                    <th>Sensor Type</th>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Remove</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+
         </div>
         <div class="actions">
             <h4>Actions</h4>
-            <button class="add-action-btn">Add Action</button>
+            <button class="add-action-btn">+</button>
+            <div id="actionOptions" style="display: none;">
+                <select id="actionType">
+                    <option value="">Select Type</option>
+                    <option value="switch">Switch</option>
+                    <option value="siren">Siren</option>
+                    <option value="delay">Delay</option>
+                </select>
+                <select id="actionId" style="display: none;"></select>
+                <select id="actionStatus" style="display: none;">
+                    <option value="">Select Status</option>
+                    <option value="on">On</option>
+                    <option value="off">Off</option>
+                </select>
+                <input type="number" id="delayTime" style="display: none;" placeholder="Insert Time in Seconds">
+                <button id="addActionBtn" style="display: none;">Add Action</button>
+            </div>
+            <table id="actionsTable" style="display: none;">
+                <thead>
+                <tr>
+                    <th>Action Type</th>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Remove</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
         <button id="doneBtn">Done</button>
     </div>
@@ -314,7 +373,7 @@
         var actions_data = {{ actions_data |safe  }};
     </script>
 
-    <link rel="stylesheet" href="static/js/eventsButton.js">
+    <script src="static/js/eventsButton.js"></script>
     <script src="static/js/eventsTable.js"></script>
     <script src="static/js/network-animation.js"></script>
     <script src="static/js/dashboard.js"></script>

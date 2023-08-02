@@ -7,6 +7,7 @@ var dashboardContainer = document.getElementById('dashboardContainer');
 var addItem = document.getElementById('add-item-button');
 var EditItem = document.getElementById('editButton');
 var OkItem = document.getElementById('okButton');
+var addAutomationBtn = document.getElementById('addAutomationBtn');
 
 automationButton.addEventListener('click', function () {
     // Toggle the visibility of the automation table
@@ -15,6 +16,7 @@ automationButton.addEventListener('click', function () {
     addItem.style.display = 'none';
     EditItem.style.display = 'none';
     OkItem.style.display = 'none';
+    addAutomationBtn.style.display = 'block';
 
 });
 homeButton.addEventListener('click', function () {
@@ -22,7 +24,10 @@ homeButton.addEventListener('click', function () {
     automationTable.style.display = 'none';
     dashboardContainer.style.display = 'block';
     EditItem.style.display = 'block';
-    addItem.style.display = 'block';
+    addItem.style.display = 'flex';
+    addAutomationBtn.style.display = 'none';
+
+
 
 });
         // Function to create a table row for an item

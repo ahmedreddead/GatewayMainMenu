@@ -31,8 +31,52 @@ page_loaded = False
 
 
 host = '10.20.0.169'
+@app.route('/save_data', methods=['POST'])
+def save_data():
+    data = request.get_json()
+    events = data.get('events')
+    actions = data.get('actions')
+
+    # Process the events and actions data as needed
+    # For demonstration purposes, we'll just print the data
+    print("Events:", events)
+    print("Actions:", actions)
 
 
+
+    return jsonify({'message': 'Data received successfully.'})
+
+
+@app.route('/get_ids', methods=['POST'])
+def get_ids():
+    selected_type = request.form['type']
+    object = create_database_object()
+
+    # Mock data to simulate Flask response with IDs
+    if selected_type == "motion_sensor":
+        ids = object.get_sensor_id_by_type(selected_type)
+    elif selected_type == "door_sensor":
+        ids = object.get_sensor_id_by_type(selected_type)
+    elif selected_type == 'switch':
+        ids = object.get_actuator_id_by_type(selected_type)
+    elif selected_type == 'siren':
+        ids = object.get_actuator_id_by_type(selected_type)
+    else:
+        ids = []
+
+    return jsonify({'ids': ids})
+
+@app.route('/save_event', methods=['POST'])
+def save_event():
+    event_data = request.get_json()
+    # Save the event_data to your database or process it as required
+    return jsonify({'status': 'success'})
+
+@app.route('/save_action', methods=['POST'])
+def save_action():
+    event_data = request.get_json()
+    # Save the event_data to your database or process it as required
+    return jsonify({'status': 'success'})
 
 def insert_reading(sensorType , sensorId , status) :
     object = create_database_object()
@@ -522,7 +566,7 @@ def check_push_alerts():
                     t.start()
                     object.delete_push_alert(action_id)
             object.disconnect()
-            time.sleep(10)
+            time.sleep(1)
 
         except Exception as e:
             print("Error in push alerts:", e)

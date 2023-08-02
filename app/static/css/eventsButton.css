@@ -3,15 +3,17 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 50px;
-    height: 50px;
-    font-size: 30px;
+    width: 60px;
+    height: 60px;
+    font-size: 36px;
     border-radius: 50%;
     background-color: #007bff;
     color: #fff;
     border: none;
     cursor: pointer;
     z-index: 1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
 }
 
 .overlay {
@@ -31,12 +33,214 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 300px;
-    padding: 20px;
+    width: 80%;
+    max-width: 700px;
+    max-height: 700px;
+    padding: 80px;
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     z-index: 3;
+    overflow-y: auto;
+}
+
+.automation-window h3 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.automation-window h4 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: #555;
+}
+
+.automation-window button {
+    padding: 10px 20px;
+    margin: 8px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    background-color: #007bff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.automation-window .events {
+    background-color: #f8f8f8;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.automation-window .actions {
+    background-color: #f2f2f2;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+/* Custom styles for specific buttons */
+#doneBtn {
+    background-color: #28a745;
+}
+
+.add-event-btn {
+    background-color: #dc3545;
+}
+
+.automation-window button:hover {
+    background-color: #f2f2f2 ;
+}
+
+.add-action-btn {
+    background-color: #ffc107;
+}
+
+/* Add more CSS styles based on your design */
+.exit-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 24px;
+    color: #555;
+    cursor: pointer;
+}
+
+/* CSS styling for the main content and button */
+/* ... (previously defined styles) ... */
+
+/* New styles for the events table */
+#eventsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+#eventsTable th {
+    background-color: #007bff;
+    color: #fff;
+    padding: 12px;
+    text-align: left;
+}
+
+#eventsTable td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+#eventsTable td:last-child {
+    text-align: center;
+}
+
+/* Styling for the "Delete" button */
+.remove-event-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-event-btn:hover {
+    background-color: #c82333;
+}
+
+/* Add more CSS styles based on your design */
+
+/* CSS styling for the main content and button */
+/* ... (previously defined styles) ... */
+
+/* New styles for the actions section */
+.actions {
+    margin-top: 20px;
+}
+
+.actions h4 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+
+
+.actions button.add-action-btn:hover {
+    background-color: #f2f2f2 ;
+}
+
+.actions #actionOptions {
+    margin-top: 10px;
+}
+
+.actions select,
+.actions input {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.actions select {
+    font-size: 16px;
+}
+
+.actions #delayTime {
+    display: none;
+}
+
+.actions button#addActionBtn {
+    display: none;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.actions button#addActionBtn:hover {
+    background-color: #0056b3;
+}
+
+/* New styles for the actions table */
+#actionsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+#actionsTable th {
+    background-color: #007bff;
+    color: #fff;
+    padding: 12px;
+    text-align: left;
+}
+
+#actionsTable td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+#actionsTable td:last-child {
+    text-align: center;
+}
+
+/* Styling for the "Delete" button in the actions table */
+.remove-action-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-action-btn:hover {
+    background-color: #c82333;
 }
 
 /* Add more CSS styles based on your design */

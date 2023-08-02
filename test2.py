@@ -56,3 +56,19 @@ def actions_to_json(siren, switch, time):
 
 
 print( actions_to_json(actions_str[0],actions_str[1],actions_str[2]) )
+
+Events = [
+         {'type': 'motion_sensor', 'id': '6', 'status': 'motion_detected'},
+         {'type': 'door_sensor', 'id': '2298', 'status': 'opened'},
+         {'type': 'door_sensor', 'id': '9987', 'status': 'closed'}
+         ]
+
+Actions = [
+    {'type': 'siren', 'id': '9', 'status': 'on', 'delay': ''}
+    , {'type': 'delay', 'id': None, 'status': '', 'delay': '5'},
+    {'type': 'siren', 'id': '9', 'status': 'off', 'delay': ''}
+]
+
+
+for i in Events :
+    print(i)

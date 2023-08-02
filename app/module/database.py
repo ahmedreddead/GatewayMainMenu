@@ -578,3 +578,29 @@ class Database :
             return error
 
 
+    def get_sensor_id_by_type(self, type):
+        try:
+            cursor = self.connection.cursor()
+            # Check if the sensor ID already exists in the sensors table
+            check_query = "SELECT sensorid FROM sensors WHERE name =%s"
+            cursor.execute(check_query , [type])
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+    def get_actuator_id_by_type(self, type):
+        try:
+            cursor = self.connection.cursor()
+            # Check if the sensor ID already exists in the sensors table
+            check_query = "SELECT actuatorid FROM actuators WHERE name = %s"
+            cursor.execute(check_query , [type])
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+
+
