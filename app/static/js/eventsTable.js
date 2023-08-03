@@ -74,6 +74,6 @@ eventMotion.forEach(function(item) {
 var tableBody = document.getElementById('actionsdata');
 
 actions_data.forEach(function(item) {
-    var newRow = createTableRow_actions(item);
-    tableBody.appendChild(newRow);
+        var newRow = createTableRow_actions(item);
+        tableBody.appendChild(newRow);
 });

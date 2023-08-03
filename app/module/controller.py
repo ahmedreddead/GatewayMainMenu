@@ -2,6 +2,7 @@ import datetime
 import json
 import threading
 import time
+import random
 
 from flask import render_template, request, jsonify
 from app import app,socketio
@@ -31,6 +32,50 @@ page_loaded = False
 
 
 host = '10.20.0.169'
+
+def create_new_automation (Actions , Events) :
+    insert_event_flag = 0
+    insert_action_flag = 0
+    event_id = 0
+    action_id = 0
+    user_id = session['user_id']
+    try:
+        while not insert_event_flag :
+            object = create_database_object()
+            event_id_new = random.randint(1, 9999)
+            if object.check_insert_event_id(event_id_new,user_id) :
+                event_id = event_id_new
+                insert_event_flag = 1
+
+        while not insert_action_flag:
+            object = create_database_object()
+            action_id_new = random.randint(1, 9999)
+            if object.check_insert_action_id(action_id_new, user_id):
+                action_id = action_id_new
+                insert_action_flag = 1
+
+        object = create_database_object()
+
+        object.insert_new_automation(event_id,action_id,user_id)
+        for dic in Events:
+            if dic['type'] == 'motion_sensor':
+                object.insert_door_event(event_id, dic['id'], dic['status'])
+            elif dic['type'] == 'door_sensor':
+                object.insert_motion_event(event_id, dic['id'], dic['status'])
+
+        for index, dic in enumerate(Actions):
+            if dic['type'] == 'siren':
+                object.insert_action_siren(index, action_id, dic['id'], dic['status'])
+            elif dic['type'] == 'switch':
+                object.insert_action_switch(index, action_id, dic['id'], dic['status'])
+            elif dic['type'] == 'delay':
+                object.insert_action_delay(index, action_id, dic['delay'])
+    except :
+        print("A7a")
+
+    return 200
+
+
 @app.route('/save_data', methods=['POST'])
 def save_data():
     data = request.get_json()
@@ -41,10 +86,12 @@ def save_data():
     # For demonstration purposes, we'll just print the data
     print("Events:", events)
     print("Actions:", actions)
+    response =create_new_automation(actions,events)
 
-
-
-    return jsonify({'message': 'Data received successfully.'})
+    if response == 200 :
+        return jsonify({'message': 'Data received successfully.'})
+    else:
+        return jsonify({'message': 'Data received unsuccessfully.'})
 
 
 @app.route('/get_ids', methods=['POST'])
@@ -144,16 +191,22 @@ def actions_to_json(siren, switch, time):
 
 def data_to_json(data_string) :
     import json
-    if data_string == "None" :
+    if data_string == "None" or not data_string:
         return
     data_list = []
-    for item in data_string.split('],['):
-        id, status = item.strip('[]').split(',')
+    print(data_string)
+    if '],[' in str(data_string) :
+        for item in data_string.split('],['):
+            id, status = item.strip('[]').split(',')
+            data_list.append({'id': int(id), 'status': status})
+    elif ']' in data_string :
+        id, status = str(data_string).replace('[', '').replace(']','').split(',')
         data_list.append({'id': int(id), 'status': status})
+
 
     # Now data_list contains the list of dictionaries with ID and Status
     data_json = json.dumps(data_list)
-    return data_json
+    return data_list
 def create_database_object () :
     object = database.Database(host, 3306, "grafana", "pwd123", "grafanadb")
     object.connect()
@@ -432,13 +485,25 @@ def index():
     len_items = count  # Replace with the actual number of items
     print(session['events_and_actions'] )
     print( )
-    door_event_data =  data_to_json( (session['events_and_actions'][0])[1] )
-    motion_event_data =  data_to_json( (session['events_and_actions'][0])[2] )
-    actions_data =  actions_to_json( (session['events_and_actions'][0])[4] ,(session['events_and_actions'][0])[5] , (session['events_and_actions'][0])[6])
+    i=0
 
+    door_event_data = data_to_json( (session['events_and_actions'][i] )[1] )
+    motion_event_data =data_to_json((session['events_and_actions'][i])[2])
+    actions_data = actions_to_json( (session['events_and_actions'][i])[4] ,(session['events_and_actions'][i])[5] , (session['events_and_actions'][i])[6] )
+    '''
+   for i in range(len(session['events_and_actions'])) :
+        door_event_data.append(data_to_json( (session['events_and_actions'][i] )[1] )   )
+
+    for i in range(len(session['events_and_actions'])):
+        motion_event_data.append(data_to_json((session['events_and_actions'][i])[2]))
+
+    for i in range(len(session['events_and_actions'])):
+        actions_data.append(actions_to_json( (session['events_and_actions'][i])[4] ,(session['events_and_actions'][i])[5] , (session['events_and_actions'][i])[6]) )'''
     print(door_event_data)
+    print(motion_event_data)
     print(actions_data)
 
+    print(door_event_data)
 
     if 'username' in session:
         # User is already logged in, render the user page

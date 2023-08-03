@@ -30,7 +30,6 @@ def create_new_automation (object) :
     while not insert_event_flag :
         object = create_database_object()
         event_id_new = random.randint(1, 9999)
-        #object.check_insert_event_id( event_id, user_id)
         if object.check_insert_event_id(event_id_new, 1) :
             event_id = event_id_new
             insert_event_flag = 1
@@ -38,7 +37,6 @@ def create_new_automation (object) :
     while not insert_action_flag:
         object = create_database_object()
         action_id_new = random.randint(1, 9999)
-        # object.check_insert_event_id( event_id, user_id)
         if object.check_insert_action_id(action_id_new, 1):
             action_id = action_id_new
             insert_action_flag = 1

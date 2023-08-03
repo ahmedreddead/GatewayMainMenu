@@ -1,5 +1,6 @@
 
 import json
+from test import  *
 
 actions_str = ('[33,off,3],[33,on,1]', None, '[10,2]')
 
@@ -65,10 +66,21 @@ Events = [
 
 Actions = [
     {'type': 'siren', 'id': '9', 'status': 'on', 'delay': ''}
-    , {'type': 'delay', 'id': None, 'status': '', 'delay': '5'},
+    ,{'type': 'delay', 'id': None, 'status': '', 'delay': '5'},
     {'type': 'siren', 'id': '9', 'status': 'off', 'delay': ''}
 ]
 
 
-for i in Events :
-    print(i)
+for dic in Events :
+    if dic['type'] == 'motion_sensor' :
+        object.insert_door_event(event_id,dic['id'],dic['status'])
+    elif dic['type'] == 'door_sensor' :
+        object.insert_motion_event(event_id , dic['id'],dic['status'] )
+
+for index , dic in enumerate(Actions) :
+    if dic['type'] == 'siren' :
+        object.insert_action_siren(index ,action_id,dic['id'],dic['status'])
+    elif dic['type'] == 'switch' :
+        object.insert_action_switch(index, action_id , dic['id'],dic['status'] )
+    elif dic['type'] == 'delay' :
+        object.insert_action_switch(index, action_id , dic['delay'] )

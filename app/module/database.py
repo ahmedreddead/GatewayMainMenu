@@ -503,7 +503,6 @@ class Database :
             return error
 
 
-
     def insert_new_automation(self , event_id , action_id , user_id ):
         try:
             cursor = self.connection.cursor()
@@ -530,7 +529,7 @@ class Database :
     def insert_motion_event(self , event_id , motion_sensor_id , motion_status ):
         try:
             cursor = self.connection.cursor()
-            command = """INSERT INTO event_door (  event_id , door_sensor_id , door_sensor_status , triggerr ) VALUES (%s,%s,%s, %s) """
+            command = """INSERT INTO event_motion ( .event_id , motion_sensor_id , motion_sensor_status , triggerr ) VALUES ( %s,%s,%s,%s )"""
             records_to_insert = ( event_id , motion_sensor_id , motion_status , 0 )
             cursor.execute(command, records_to_insert)
             self.connection.commit()
@@ -598,6 +597,43 @@ class Database :
             cursor.execute(check_query , [type])
             result = cursor.fetchall()
             return result
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+# Actions
+    def insert_action_siren(self , order , action_id , siren_id , status):
+        try:
+            cursor = self.connection.cursor()
+            insert_query = "INSERT INTO action_siren (action_id,siren_id,siren_status,order_number) VALUES (%s, %s, %s, %s)"
+            # Data to be inserted
+            data = (action_id, siren_id, status,order)
+            cursor.execute(insert_query, data)
+            self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+    def insert_action_switch(self, order , action_id , switch_id , status):
+        try:
+            cursor = self.connection.cursor()
+            insert_query = "INSERT INTO action_switch (action_id,switch_id,switch_status,order_number ) VALUES (%s, %s, %s, %s)"
+            # Data to be inserted
+            data = (action_id, switch_id, status, order)
+            cursor.execute(insert_query, data)
+            self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+    def insert_action_delay(self,order ,action_id,duration):
+        try:
+            cursor = self.connection.cursor()
+            insert_query = "INSERT INTO delay (action_id,duration,order_number) VALUES (%s, %s, %s )"
+            # Data to be inserted
+            data = (action_id, duration, order)
+            cursor.execute(insert_query, data)
+            self.connection.commit()
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
             return error
