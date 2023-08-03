@@ -131,6 +131,7 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% set counter = 0 %}
                 {% for row in data %}
                 <tr>
                     <td>{{ row[0] }}</td>
@@ -143,7 +144,15 @@
                                 <th>Status</th>
                             </tr>
                             </thead>
-                            <tbody id = "tableDoorEvent"></tbody>
+                            <tbody id = "tableDoorEvent{{loop.index }}">
+
+                            {% for item in door_event_data[loop.index-1] %}
+                            <tr>
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.status }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
                         </table>
 
 
@@ -158,7 +167,17 @@
                                 <th>Status</th>
                             </tr>
                             </thead>
-                            <tbody id = "tableMotionEvent"></tbody>
+                            <tbody id = "tableMotionEvent{{ loop.index }}">
+
+                            {% for item in motion_event_data[loop.index-1] %}
+                            <tr>
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.status }}</td>
+                            </tr>
+                            {% endfor %}
+
+
+                            </tbody>
                         </table>
 
 
@@ -177,7 +196,19 @@
                                 <th>Status</th>
                             </tr>
                             </thead>
-                            <tbody id = "actionsdata"></tbody>
+                            <tbody id = "actionsdata{{ loop.index  }}">
+
+                            {% for item in actions_data[loop.index-1] %}
+                            <tr>
+                                <td>{{ item.order  }}</td>
+                                <td>{{ item.type }}</td>
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.status }}</td>
+                            </tr>
+                                {% set counter = counter + 1 %}
+                            {% endfor %}
+
+                            </tbody>
                         </table>
 
 
@@ -195,6 +226,8 @@
                     </td>
                     <td><button class="btn btn-danger btn-sm" onclick="deleteAction({{ row[3] }})">Delete</button></td>
                 </tr>
+                    {% set counter = counter + 1 %}
+
                 {% endfor %}
                 </tbody>
             </table>

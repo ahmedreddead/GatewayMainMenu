@@ -59,17 +59,17 @@ def create_new_automation (Actions , Events) :
         object.insert_new_automation(event_id,action_id,user_id)
         for dic in Events:
             if dic['type'] == 'motion_sensor':
-                object.insert_door_event(event_id, dic['id'], dic['status'])
-            elif dic['type'] == 'door_sensor':
                 object.insert_motion_event(event_id, dic['id'], dic['status'])
+            elif dic['type'] == 'door_sensor':
+                object.insert_door_event(event_id, dic['id'], dic['status'])
 
         for index, dic in enumerate(Actions):
             if dic['type'] == 'siren':
-                object.insert_action_siren(index, action_id, dic['id'], dic['status'])
+                object.insert_action_siren(index+1, action_id, dic['id'], dic['status'])
             elif dic['type'] == 'switch':
-                object.insert_action_switch(index, action_id, dic['id'], dic['status'])
+                object.insert_action_switch(index+1, action_id, dic['id'], dic['status'])
             elif dic['type'] == 'delay':
-                object.insert_action_delay(index, action_id, dic['delay'])
+                object.insert_action_delay(index+1, action_id, dic['delay'])
     except :
         print("A7a")
 
@@ -192,7 +192,8 @@ def actions_to_json(siren, switch, time):
 def data_to_json(data_string) :
     import json
     if data_string == "None" or not data_string:
-        return
+        data_json = json.dumps([], indent=2)
+        return data_json
     data_list = []
     print(data_string)
     if '],[' in str(data_string) :
@@ -205,8 +206,8 @@ def data_to_json(data_string) :
 
 
     # Now data_list contains the list of dictionaries with ID and Status
-    data_json = json.dumps(data_list)
-    return data_list
+    data_json = json.dumps(data_list, indent=2)
+    return data_json
 def create_database_object () :
     object = database.Database(host, 3306, "grafana", "pwd123", "grafanadb")
     object.connect()
@@ -484,12 +485,13 @@ def index():
     numItems = ( count // numPerRow )+ 6
     len_items = count  # Replace with the actual number of items
     print(session['events_and_actions'] )
-    print( )
-    i=0
-
-    door_event_data = data_to_json( (session['events_and_actions'][i] )[1] )
-    motion_event_data =data_to_json((session['events_and_actions'][i])[2])
-    actions_data = actions_to_json( (session['events_and_actions'][i])[4] ,(session['events_and_actions'][i])[5] , (session['events_and_actions'][i])[6] )
+    door_event_data = []
+    motion_event_data = []
+    actions_data = []
+    for i in range(len(session['events_and_actions'])) :
+        door_event_data.append (data_to_json( (session['events_and_actions'][i] )[1]))
+        motion_event_data.append(data_to_json((session['events_and_actions'][i])[2]) )
+        actions_data.append(actions_to_json( (session['events_and_actions'][i])[4] ,(session['events_and_actions'][i])[5] , (session['events_and_actions'][i])[6] ) )
     '''
    for i in range(len(session['events_and_actions'])) :
         door_event_data.append(data_to_json( (session['events_and_actions'][i] )[1] )   )
@@ -499,15 +501,15 @@ def index():
 
     for i in range(len(session['events_and_actions'])):
         actions_data.append(actions_to_json( (session['events_and_actions'][i])[4] ,(session['events_and_actions'][i])[5] , (session['events_and_actions'][i])[6]) )'''
-    print(door_event_data)
-    print(motion_event_data)
-    print(actions_data)
 
-    print(door_event_data)
+    actions_data_parsed = [json.loads(action) for action in actions_data]
+    door_data_parsed = [json.loads(door) for door in door_event_data]
+    motion_data_parsed = [json.loads(motion) for motion in motion_event_data]
+    print(actions_data_parsed)
 
     if 'username' in session:
         # User is already logged in, render the user page
-        return render_template('index.html',actions_data= actions_data , door_event_data=door_event_data , motion_event_data=motion_event_data , data = session['events_and_actions'] , item_locations=session['item_locations'],len_items=len_items, num_items=numItems, items_flask=session['item_locations'], username=session['username'], partition_width=partition_width,partition_height=partition_height,padding=padding , num_per_row =numPerRow )
+        return render_template('index.html',actions_data= actions_data_parsed , door_event_data=door_data_parsed , motion_event_data=motion_data_parsed , data = session['events_and_actions'] , item_locations=session['item_locations'],len_items=len_items, num_items=numItems, items_flask=session['item_locations'], username=session['username'], partition_width=partition_width,partition_height=partition_height,padding=padding , num_per_row =numPerRow )
     else:
         # User is not logged in, redirect to the login page
         return redirect(url_for('login'))

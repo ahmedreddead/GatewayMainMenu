@@ -529,7 +529,7 @@ class Database :
     def insert_motion_event(self , event_id , motion_sensor_id , motion_status ):
         try:
             cursor = self.connection.cursor()
-            command = """INSERT INTO event_motion ( .event_id , motion_sensor_id , motion_sensor_status , triggerr ) VALUES ( %s,%s,%s,%s )"""
+            command = """INSERT INTO event_motion (event_id , motion_sensor_id , motion_sensor_status , triggerr ) VALUES ( %s,%s,%s,%s )"""
             records_to_insert = ( event_id , motion_sensor_id , motion_status , 0 )
             cursor.execute(command, records_to_insert)
             self.connection.commit()
