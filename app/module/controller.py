@@ -358,8 +358,7 @@ def check_first_load():
 
 def get_data_database ():
     global  sensor_counts
-    object = database.Database(host, 3306, "grafana", "pwd123", "grafanadb")
-    object.connect()
+    object = create_database_object()
     sensor_counts = {key: [] for key in sensor_types}
 
     cursor = object.connection.cursor()
@@ -397,8 +396,7 @@ def get_data_From_dashboard(object):
     return sensor_counts
 
 def validate_credentials(username, password):
-    object = database.Database(host, 3306, "grafana", "pwd123", "grafanadb")
-    object.connect()
+    object = create_database_object()
 
     cursor = object.connection.cursor()
     check_query = "SELECT id FROM users WHERE name = %s AND password = %s"
@@ -439,11 +437,6 @@ def logout():
     session.clear()  # Clear the session
     return redirect(url_for('login'))
 
-@socketio.on('connect')
-def handle_connect():
-    # Access session in the WebSocket connection
-    if 'first_load' not in session:  # Check if it's the first client connection
-        session['first_load'] = False
 
 def check_session_parameters() :
     # Access session in the WebSocket connection
@@ -501,14 +494,12 @@ def index():
     check_session_parameters()
     if 'username' not in session:
         return redirect(url_for('login'))
-
     count = session.get('count')
     partition_width  = 200
     partition_height = 200
-
     padding = 50
     numPerRow = 4
-    numItems = ( count // numPerRow )+ 6
+    numItems = ( count // numPerRow )+ 1
     len_items = count  # Replace with the actual number of items
     print(session['events_and_actions'] )
     door_event_data = []
@@ -544,82 +535,44 @@ def index():
 def data():
     return jsonify(sensor_data)
 
-@app.route('/user')
-def user():
-    global page_loaded
-    """
-    sensor_counts = {
-        'door_sensor': [1, 2],
-        'motion_sensor': [1, 2] ,
-        'switch' : [33] ,
-        'siren' : [55 ]
-        # add more sensor types and IDs here
-    }"""
-    global is_first_load, sensor_counts
-    first_load = session.get('first_load')
-    sensor_counts = session.get('sensor_counts',False)
-    print(sensor_counts)
-
-    if is_first_load:
-        # Perform the initialization tasks here
-        sensor_counts = get_data_From_dashboard()
-        for sensor_type in list(sensor_counts.keys()):
-            for sensor_id in sensor_counts.get(sensor_type, []):
-                #topic = f"micropolis/{sensor_type}/{sensor_id}"
-                #mqtt.publish(topic, "unknown")
-                #time.sleep(0.1)
-                pass
-
-        # Update the flag to indicate that the initialization has been done
-        is_first_load = False
-    """
-    first_load = session.get('first_load')
-    if not session or not first_load :
-        session['first_load'] = True
-        sensor_counts = get_data_database()
-        # Publish initial "unknown" status for each sensor and actuator
-        for sensor_type in list (sensor_counts.keys()):
-            for sensor_id in sensor_counts.get(sensor_type, []):
-                topic = f"micropolis/{sensor_type}/{sensor_id}"
-                mqtt.publish(topic, "unknown")
-    """
-    if 'username' in session:
-        # User is already logged in, render the user page
-        return render_template('user.html', username=session['username'], sensor_counts=sensor_counts,page_loaded=page_loaded)
-    else:
-        # User is not logged in, redirect to the login page
-        return redirect(url_for('login'))
-
 @mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
-    mqtt.subscribe('#')
+    try:
+        mqtt.subscribe('#')
+    except :
+        print("aaaaaaaaaaaaaaaaaaaaaa")
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
-    data = dict(
+    try:
+        data = dict(
         topic=message.topic,
         payload=message.payload.decode()
-    )
+        )
     #print(data)
-    topic_parts = data['topic'].split('/')
-    sensor_type = topic_parts[1]
-    sensor_id = topic_parts[2]
-    if sensor_type not in sensor_data:
-        sensor_data[sensor_type] = {}
-    sensor_data[sensor_type][sensor_id] = data['payload']
-    socketio.emit(f'{sensor_type}_data', json.dumps(sensor_data[sensor_type]))
-
-    insert_reading(sensor_type, sensor_id, data['payload'])
+        topic_parts = data['topic'].split('/')
+        sensor_type = topic_parts[1]
+        sensor_id = topic_parts[2]
+        if sensor_type not in sensor_data:
+            sensor_data[sensor_type] = {}
+        sensor_data[sensor_type][sensor_id] = data['payload']
+        socketio.emit(f'{sensor_type}_data', json.dumps(sensor_data[sensor_type]))
+        insert_reading(sensor_type, sensor_id, data['payload'])
+    except :
+        print("error")
 
     #t = threading.Thread(target=insert_reading, args=(sensor_type, sensor_id, data['payload']))
     #t.start()
 
 @socketio.on('actuator_command')
 def handle_actuator_command(data):
-    actuator_type = data['type']
-    actuator_id = data['id']
-    actuator_value = data['value']
-    mqtt.publish(f'micropolis/{actuator_type}/{actuator_id}', actuator_value)
+    try:
+        actuator_type = data['type']
+        actuator_id = data['id']
+        actuator_value = data['value']
+        mqtt.publish(f'micropolis/{actuator_type}/{actuator_id}', actuator_value)
+    except :
+        print("error")
 
 def do_action (action_id, object ) :
     actons = object.get_actions(action_id)
@@ -665,27 +618,6 @@ def check_push_alerts():
             print("Error in push alerts:", e)
             object = create_database_object()
 
-def create_event() :
-    dictionary =  [{'motion_sensor':'1213'},{'door_sensor' : '1212' , 'status' : 'on'}]
-    dictionary_action =  [{'siren' },{'door_sensor' : '1212' , 'status' : 'on'}]
-    object = create_database_object()
-    object.insert_event_motion(dictionary)
-
-def create_action():
-    pass
-
-def get_events_details () :
-
-    # { [ eventid : 556 , name : secure , description : [{sirenid : 5564 , status : on } , {delay : 5 } , {sirenid : 545 , status : off}] ,..... }
-    object = create_database_object()
-    result = object.get_events_by_user(session.get('user_id'))
-
-    print(result)
-
-
-
-
-    pass
 
 
 

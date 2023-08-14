@@ -39,7 +39,7 @@ xhr.onreadystatechange = function() {
             if (deviceType == 'switch'  ) {
                 updateActuatorData(deviceType, data[deviceType]);
             } else {
-                if (deviceType == 'siren'  ) {
+                if (deviceType == 'siren' ) {
                     updateActuatorData(deviceType, data[deviceType]);
             }   else {
                     updateSensorData(deviceType, data[deviceType]);

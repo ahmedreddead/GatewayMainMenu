@@ -140,17 +140,41 @@ if (location.type === 'siren' || location.type === 'switch') {
     item.attr('id', location.itemId);
     var partition = $('#' + location.partitionId);
     partition.append(item);
-            
-    if (location.type == 'switch' || location.type == 'siren' ) {
-        socket.on(`${location.type}_data`, function (data) {
-            let actuatorData = JSON.parse(data);
-            updateActuatorData(location.type, actuatorData);
-        });
 
-    } else {
-        socket.on(`${location.type}_data`, function (data) {
-            let sensorData = JSON.parse(data);
-            updateSensorData(location.type, sensorData);
-        });
-    }
+
+
+
 });
+
+var index = 0;
+
+function processLocationsWithDelay() {
+    if (index >= itemLocations.length) {
+        return; // Exit when all locations are processed
+    }
+
+    var location = itemLocations[index];
+
+    setTimeout(function() {
+        console.log("a7a");
+        if (location.type == 'switch' || location.type == 'siren') {
+            socket.on(`${location.type}_data`, function (data) {
+                let actuatorData = JSON.parse(data);
+                console.log(data);
+                updateActuatorData(location.type, actuatorData);
+            });
+        } else {
+            socket.on(`${location.type}_data`, function (data) {
+                let sensorData = JSON.parse(data);
+                updateSensorData(location.type, sensorData);
+            });
+        }
+
+        index++; // Move to the next location
+        processLocationsWithDelay(); // Call the function recursively
+    }, 200); // Introduce a 1-second delay before processing the next location
+}
+
+// Start processing the locations
+processLocationsWithDelay();
+
