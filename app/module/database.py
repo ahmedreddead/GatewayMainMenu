@@ -684,6 +684,8 @@ class Database :
             DECLARE action_id_param INT;
             DECLARE door_triggerr INT;
             DECLARE motion_triggerr INT;
+            DECLARE door_row_count INT;
+            DECLARE motion_row_count INT;
 
             -- Get the event_id and action_id parameters
             SET event_id_param = %s; -- Replace <event_id_value> with the actual event ID parameter
@@ -699,6 +701,16 @@ class Database :
             SET triggerr = 1
             WHERE event_id = event_id_param AND door_sensor_id = NEW.sensorid;
             END IF;
+            
+            
+            -- Get the row counts for event_door and event_motion
+            SELECT COUNT(*) INTO door_row_count
+            FROM event_door
+            WHERE event_id = event_id_param;
+
+            SELECT COUNT(*) INTO motion_row_count
+            FROM event_motion
+            WHERE event_id = event_id_param;
 
             -- Check if all triggers (door, motion, and switch) are set to 1 for the given event and action
             SET door_triggerr = (
@@ -716,7 +728,7 @@ class Database :
             );
 
             -- If all triggers are set to 1
-            IF door_triggerr = 1 AND motion_triggerr = 1 THEN
+            IF (door_triggerr = 1 AND motion_triggerr = 1) OR (door_triggerr = 1 AND motion_row_count = 0) OR (motion_triggerr = 1 AND door_row_count = 0) THEN
             UPDATE event_door SET triggerr = 0 WHERE event_id = event_id_param;
             UPDATE event_motion SET triggerr = 0 WHERE event_id = event_id_param;
             INSERT INTO push_alert VALUES (event_id_param , action_id_param );
@@ -737,6 +749,8 @@ BEGIN
   DECLARE action_id_param INT;
   DECLARE door_triggerr INT;
   DECLARE motion_triggerr INT;
+  DECLARE door_row_count INT;
+  DECLARE motion_row_count INT;
 
   -- Get the event_id and action_id parameters
   SET event_id_param = %s ; -- Replace <event_id_value> with the actual event ID parameter
@@ -768,9 +782,19 @@ BEGIN
     WHERE event_id = event_id_param
     GROUP BY event_id
   );
+  
+  -- Get the row counts for event_door and event_motion
+    SELECT COUNT(*) INTO door_row_count
+    FROM event_door
+    WHERE event_id = event_id_param;
+
+    SELECT COUNT(*) INTO motion_row_count
+    FROM event_motion
+    WHERE event_id = event_id_param;
+
 
   -- If all triggers are set to 1, execute the Python script
-  IF door_triggerr = 1 AND motion_triggerr = 1 THEN
+  IF (door_triggerr = 1 AND motion_triggerr = 1) OR (door_triggerr = 1 AND motion_row_count = 0) OR (motion_triggerr = 1 AND door_row_count = 0) THEN
 
       UPDATE event_door SET triggerr = 0 WHERE event_id = event_id_param;
       UPDATE event_motion SET triggerr = 0 WHERE event_id = event_id_param;
