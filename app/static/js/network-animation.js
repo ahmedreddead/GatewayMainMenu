@@ -17,7 +17,7 @@ function getRandomPosition(min, max) {
 function drawAnimationNetwork (){
 
     const svg = document.querySelector('.network-animation');
-    const numCircles = 40;
+    const numCircles = 20;
     const circles = [];
 
     for (let i = 0; i < numCircles; i++) {
@@ -31,7 +31,7 @@ function drawAnimationNetwork (){
     }
 
 // Generate lines connecting circles
-    const numLines = 10;
+    const numLines = 5;
 
     for (let i = 0; i < numLines; i++) {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');

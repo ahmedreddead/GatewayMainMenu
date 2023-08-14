@@ -3,17 +3,27 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 60px;
-    height: 60px;
-    font-size: 36px;
+    width: 50px;
+    height: 50px;
+    background-color: #6FABF0;
     border-radius: 50%;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    z-index: 1;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: none;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add a subtle box shadow */
+    transition: background-color 0.3s ease; /* Add a smooth transition effect */
+
+    /* Add a gradient background */
+    background-image: linear-gradient(to bottom, #6FABF0, #357AE8);
+}
+.add-button:hover {
+    background-color: #357AE8; /* Change the background color on hover */
+}
+
+.plus-icon {
+    color: white;
+    font-size: 24px;
 }
 
 .overlay {
