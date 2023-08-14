@@ -31,7 +31,26 @@ is_first_load = True
 page_loaded = False
 
 
-host = '10.20.0.169'
+host = '10.20.0.197'
+
+
+@app.after_request
+def add_cache_control(response):
+
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
+    return response
+
+
+@app.route('/delete_automation', methods=['POST'])
+def delete_automation():
+    data = request.get_json()
+    object = create_database_object()
+    object.delete_automation(data['event_id'], data['action_id'])
+    object.delete_trigger(data['event_id'])
+    return jsonify({'message': 'Data received successfully.'})
 
 def create_new_automation (Actions , Events) :
     insert_event_flag = 0
@@ -39,6 +58,7 @@ def create_new_automation (Actions , Events) :
     event_id = 0
     action_id = 0
     user_id = session['user_id']
+
     try:
         while not insert_event_flag :
             object = create_database_object()
@@ -57,9 +77,11 @@ def create_new_automation (Actions , Events) :
         object = create_database_object()
 
         object.insert_new_automation(event_id,action_id,user_id)
+
         for dic in Events:
             if dic['type'] == 'motion_sensor':
-                object.insert_motion_event(event_id, dic['id'], dic['status'])
+                status = 'Motion Detected'
+                object.insert_motion_event(event_id, dic['id'], status)
             elif dic['type'] == 'door_sensor':
                 object.insert_door_event(event_id, dic['id'], dic['status'])
 
@@ -70,8 +92,12 @@ def create_new_automation (Actions , Events) :
                 object.insert_action_switch(index+1, action_id, dic['id'], dic['status'])
             elif dic['type'] == 'delay':
                 object.insert_action_delay(index+1, action_id, dic['delay'])
-    except :
-        print("A7a")
+
+        object.insert_trigger(event_id,action_id)
+
+
+    except Exception as e :
+        print("error" , e)
 
     return 200
 

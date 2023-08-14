@@ -629,7 +629,7 @@ class Database :
     def insert_action_delay(self,order ,action_id,duration):
         try:
             cursor = self.connection.cursor()
-            insert_query = "INSERT INTO delay (action_id,duration,order_number) VALUES (%s, %s, %s )"
+            insert_query = "INSERT INTO delay (action_id,duration,order_number) VALUES (%s, %s,%s)"
             # Data to be inserted
             data = (action_id, duration, order)
             cursor.execute(insert_query, data)
@@ -638,5 +638,169 @@ class Database :
             print("Failed to insert into MySQL table {}".format(error))
             return error
 
+    def delete_automation(self, event_id, action_id):
+        try:
+            cursor = self.connection.cursor()
 
+            delete_event_door_query = "DELETE FROM event_door WHERE event_id = %s"
+            cursor.execute(delete_event_door_query, (event_id,))
+
+            delete_event_motion_query = "DELETE FROM event_motion WHERE event_id = %s"
+            cursor.execute(delete_event_motion_query, (event_id,))
+
+            delete_action_siren_query = "DELETE FROM action_siren WHERE action_id = %s"
+            cursor.execute(delete_action_siren_query, (action_id,))
+
+            delete_action_switch_query = "DELETE FROM action_switch WHERE action_id = %s"
+            cursor.execute(delete_action_switch_query, (action_id,))
+
+            delete_delay_query = "DELETE FROM delay WHERE action_id = %s"
+            cursor.execute(delete_delay_query, (action_id,))
+
+            delete_automation_query = "DELETE FROM automation WHERE event_id = %s AND action_id = %s"
+            cursor.execute(delete_automation_query, (event_id, action_id))
+
+            self.connection.commit()
+
+        except mysql.connector.Error as error:
+            print("Failed to delete from MySQL tables:", error)
+            return error
+
+
+    def insert_trigger(self , event_id , action_id ):
+        try:
+            cursor = self.connection.cursor()
+
+            trigger_door_name = f"{'door'+str(event_id)}"
+            trigger_motion_name = f"{'motion'+str(event_id)}"
+
+            door_query = f"""
+            CREATE TRIGGER {trigger_door_name}
+            AFTER INSERT ON door_sensor
+            FOR EACH ROW
+            BEGIN
+            DECLARE event_triggerr INT;
+            DECLARE event_id_param INT;
+            DECLARE action_id_param INT;
+            DECLARE door_triggerr INT;
+            DECLARE motion_triggerr INT;
+
+            -- Get the event_id and action_id parameters
+            SET event_id_param = %s; -- Replace <event_id_value> with the actual event ID parameter
+            SET action_id_param = %s; -- Replace <action_id_value> with the actual action ID parameter
+            -- Check if the inserted row is a door sensor
+            IF NEW.sensorid IN (
+            SELECT door_sensor_id
+            FROM event_door
+            WHERE event_id = event_id_param AND door_sensor_id = NEW.sensorid AND door_sensor_status = NEW.door_status
+            ) THEN
+            -- Update the trigger value for the corresponding event and action
+            UPDATE event_door
+            SET triggerr = 1
+            WHERE event_id = event_id_param AND door_sensor_id = NEW.sensorid;
+            END IF;
+
+            -- Check if all triggers (door, motion, and switch) are set to 1 for the given event and action
+            SET door_triggerr = (
+            SELECT MIN(triggerr)
+            FROM event_door
+            WHERE event_id = event_id_param
+            GROUP BY event_id
+            );
+
+            SET motion_triggerr = (
+            SELECT MIN(triggerr)
+            FROM event_motion
+            WHERE event_id = event_id_param
+            GROUP BY event_id
+            );
+
+            -- If all triggers are set to 1
+            IF door_triggerr = 1 AND motion_triggerr = 1 THEN
+            UPDATE event_door SET triggerr = 0 WHERE event_id = event_id_param;
+            UPDATE event_motion SET triggerr = 0 WHERE event_id = event_id_param;
+            INSERT INTO push_alert VALUES (event_id_param , action_id_param );
+
+            END IF;
+  
+            END
+            """
+            door_data = (event_id,action_id)
+            cursor.execute(door_query, door_data)
+            motion_query = f"""
+            CREATE TRIGGER {trigger_motion_name}
+AFTER INSERT ON motion_sensor
+FOR EACH ROW
+BEGIN
+  DECLARE event_triggerr INT;
+  DECLARE event_id_param INT;
+  DECLARE action_id_param INT;
+  DECLARE door_triggerr INT;
+  DECLARE motion_triggerr INT;
+
+  -- Get the event_id and action_id parameters
+  SET event_id_param = %s ; -- Replace <event_id_value> with the actual event ID parameter
+  SET action_id_param = %s ; -- Replace <action_id_value> with the actual action ID parameter
+  
+  -- Check if the inserted row is a motion sensor
+  IF NEW.sensorid IN (
+      SELECT motion_sensor_id
+      FROM event_motion
+      WHERE event_id = event_id_param AND motion_sensor_id = NEW.sensorid AND motion_sensor_status = NEW.motion_status
+    ) THEN
+    -- Update the trigger value for the corresponding event and action
+    UPDATE event_motion
+    SET triggerr = 1
+    WHERE event_id = event_id_param AND motion_sensor_id = NEW.sensorid;
+  END IF;
+
+  -- Check if all triggers (door, motion, and switch) are set to 1 for the given event and action
+  SET door_triggerr = (
+    SELECT MIN(triggerr)
+    FROM event_door
+    WHERE event_id = event_id_param
+    GROUP BY event_id
+  );
+
+  SET motion_triggerr = (
+    SELECT MIN(triggerr)
+    FROM event_motion
+    WHERE event_id = event_id_param
+    GROUP BY event_id
+  );
+
+  -- If all triggers are set to 1, execute the Python script
+  IF door_triggerr = 1 AND motion_triggerr = 1 THEN
+
+      UPDATE event_door SET triggerr = 0 WHERE event_id = event_id_param;
+      UPDATE event_motion SET triggerr = 0 WHERE event_id = event_id_param;
+      INSERT INTO push_alert VALUES (event_id_param , action_id_param );
+  	
+
+
+  END IF;
+END
+            """
+            motion_data = (event_id,action_id)
+            cursor.execute(motion_query, motion_data)
+            self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+
+    def delete_trigger(self , event_id):
+        try:
+            cursor = self.connection.cursor()
+            trigger_door_name = 'door' + str(event_id)
+            trigger_motion_name = 'motion' + str(event_id)
+            query_door = f'DROP TRIGGER {trigger_door_name};'
+            query_motion = f'DROP TRIGGER {trigger_motion_name};'
+
+            cursor.execute(query_door)
+            cursor.execute(query_motion)
+            self.connection.commit()
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
 

@@ -93,7 +93,7 @@
 </head>
 <body>
 
-    <svg class="network-animation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+    <svg class="network-animation" id = "network-animation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
     <!-- Add more circles as needed -->
   </svg>
 
@@ -224,7 +224,7 @@
                             {% endif %}
                         </button>
                     </td>
-                    <td><button class="btn btn-danger btn-sm" onclick="deleteAction({{ row[3] }})">Delete</button></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteAction({{ row[0] }} , {{ row[3] }} )">Delete</button></td>
                 </tr>
                     {% set counter = counter + 1 %}
 
