@@ -98,6 +98,7 @@ def create_new_automation (Actions , Events) :
 
     except Exception as e :
         print("error" , e)
+        return 400
 
     return 200
 
@@ -110,8 +111,7 @@ def save_data():
 
     # Process the events and actions data as needed
     # For demonstration purposes, we'll just print the data
-    print("Events:", events)
-    print("Actions:", actions)
+
     response =create_new_automation(actions,events)
 
     if response == 200 :
@@ -221,7 +221,6 @@ def data_to_json(data_string) :
         data_json = json.dumps([], indent=2)
         return data_json
     data_list = []
-    print(data_string)
     if '],[' in str(data_string) :
         for item in data_string.split('],['):
             id, status = item.strip('[]').split(',')
@@ -352,9 +351,6 @@ def delete_item () :
         response = {'message': 'item added '}
         return jsonify(response), 200
 
-@app.before_request
-def check_first_load():
-    pass
 
 def get_data_database ():
     global  sensor_counts
@@ -391,7 +387,6 @@ def get_data_From_dashboard(object):
         if row['name'] != 'temp' :
             sensor_counts[row['name']].append(row['id'])
     sensor_counts = {key: value for key, value in sensor_counts.items() if value}
-    print(sensor_counts)
     session["sensor_counts"] = sensor_counts
     return sensor_counts
 
@@ -408,7 +403,7 @@ def validate_credentials(username, password):
 
     return user_id
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST','GET'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -423,8 +418,8 @@ def login():
             session['user_id'] = user_id
             session['dashboard_id'] = 1
             session.permanent = True  # Enable permanent session
-            #return redirect(url_for('index'))
-            return index()
+            return redirect(url_for('index'))
+            #return index()
         else:
             error_message = "Invalid username or password"
     else:
@@ -501,7 +496,6 @@ def index():
     numPerRow = 4
     numItems = ( count // numPerRow )+ 1
     len_items = count  # Replace with the actual number of items
-    print(session['events_and_actions'] )
     door_event_data = []
     motion_event_data = []
     actions_data = []
@@ -522,7 +516,6 @@ def index():
     actions_data_parsed = [json.loads(action) for action in actions_data]
     door_data_parsed = [json.loads(door) for door in door_event_data]
     motion_data_parsed = [json.loads(motion) for motion in motion_event_data]
-    print(actions_data_parsed)
 
     if 'username' in session:
         # User is already logged in, render the user page
@@ -540,7 +533,7 @@ def handle_connect(client, userdata, flags, rc):
     try:
         mqtt.subscribe('#')
     except :
-        print("aaaaaaaaaaaaaaaaaaaaaa")
+        print("error in mqtt listener")
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
@@ -559,7 +552,7 @@ def handle_mqtt_message(client, userdata, message):
         socketio.emit(f'{sensor_type}_data', json.dumps(sensor_data[sensor_type]))
         insert_reading(sensor_type, sensor_id, data['payload'])
     except :
-        print("error")
+        print("error in mqtt socket sender")
 
     #t = threading.Thread(target=insert_reading, args=(sensor_type, sensor_id, data['payload']))
     #t.start()
@@ -572,7 +565,7 @@ def handle_actuator_command(data):
         actuator_value = data['value']
         mqtt.publish(f'micropolis/{actuator_type}/{actuator_id}', actuator_value)
     except :
-        print("error")
+        print("error in send mqtt command")
 
 def do_action (action_id, object ) :
     actons = object.get_actions(action_id)

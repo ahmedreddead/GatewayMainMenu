@@ -289,6 +289,7 @@ $(document).ready(function () {
             success: function (response) {
                 console.log("Data sent successfully:", response);
                 // Add any success message or redirect as needed
+                location.reload();
             },
             error: function (xhr, status, error) {
                 console.error("Error sending data:", error);
@@ -296,6 +297,7 @@ $(document).ready(function () {
             }
         });
     }
+
 
     // Done button click event
     $("#doneBtn").click(function () {

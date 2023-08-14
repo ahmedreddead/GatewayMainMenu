@@ -17,13 +17,13 @@ function getRandomPosition(min, max) {
 function drawAnimationNetwork (){
 
     const svg = document.querySelector('.network-animation');
-    const numCircles = 10;
+    const numCircles = 40;
     const circles = [];
 
     for (let i = 0; i < numCircles; i++) {
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('class', 'circle');
-    circle.setAttribute('r', '5');
+    circle.setAttribute('r', '6');
     circle.setAttribute('cx', getRandomPosition(0, 1000));
     circle.setAttribute('cy', getRandomPosition(0, 1000));
     svg.appendChild(circle);
@@ -31,7 +31,7 @@ function drawAnimationNetwork (){
     }
 
 // Generate lines connecting circles
-    const numLines = 5;
+    const numLines = 10;
 
     for (let i = 0; i < numLines; i++) {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
