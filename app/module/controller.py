@@ -3,27 +3,16 @@ import json
 import threading
 import time
 import random
-
 from flask import render_template, request, jsonify
 from app import app,socketio
-
-from flask_mqtt import Mqtt
 from app.module import database
 from flask import session
-
 from flask import redirect, url_for
 from datetime import timedelta
+import paho.mqtt.client as mqtt
 
-
-app.config['MQTT_BROKER_URL'] = 'localhost'
-app.config['MQTT_BROKER_PORT'] = 1883
-app.config['MQTT_USERNAME'] = ''
-app.config['MQTT_PASSWORD'] = ''
-app.config['MQTT_KEEPALIVE'] = 5
-app.config['MQTT_TLS_ENABLED'] = False
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)  # Set session duration (e.g., 7 days)
-mqtt = Mqtt(app)
 sensor_data = {}
 sensor_types = [ 'temperature', 'humidity', 'motion_sensor', 'door_sensor', 'glass_break' ,'switch', 'siren']
 sensor_counts = {}
@@ -32,7 +21,50 @@ page_loaded = False
 
 
 host = '10.20.0.197'
+mqtt_broker = "localhost"  # Replace with your broker's IP or hostname
+mqtt_port = 1883
+mqtt_client = ''
 
+def on_connect(client, userdata, flags, rc):
+    print("Connected to MQTT Broker")
+
+def on_message(client, userdata, message):
+    try:
+        global sensor_data
+        data = dict(
+            topic=message.topic,
+            payload=message.payload.decode()
+        )
+        topic_parts = data['topic'].split('/')
+        sensor_type = topic_parts[1]
+        sensor_id = topic_parts[2]
+        if sensor_type not in sensor_data:
+            sensor_data[sensor_type] = {}
+        sensor_data[sensor_type][sensor_id] = data['payload']
+        socketio.emit(f'{sensor_type}_data', json.dumps(sensor_data[sensor_type]))
+        insert_reading(sensor_type, sensor_id, data['payload'])
+
+    except:
+        print("error in mqtt socket sender")
+
+def mqtt_client_thread():
+    global mqtt_client
+    mqtt_client = mqtt.Client()
+    mqtt_client.on_connect = on_connect
+    mqtt_client.on_message = on_message
+    mqtt_client.connect(mqtt_broker, mqtt_port, 60)
+    mqtt_client.subscribe("#")
+    mqtt_client.loop_forever()
+
+mqtt_thread = threading.Thread(target=mqtt_client_thread)
+mqtt_thread.daemon = True  # Set the thread as a daemon so it exits when the main program exits
+mqtt_thread.start()
+
+
+
+@socketio.on("connect")
+def handle_connect():
+    print("Client connected to Socket.IO")
 
 @app.after_request
 def add_cache_control(response):
@@ -526,8 +558,9 @@ def index():
 
 @app.route('/data')
 def data():
+    print(sensor_data)
     return jsonify(sensor_data)
-
+'''
 @mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
     try:
@@ -538,11 +571,12 @@ def handle_connect(client, userdata, flags, rc):
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
     try:
+        global sensor_data
         data = dict(
-        topic=message.topic,
-        payload=message.payload.decode()
+        topic = message.topic,
+        payload = message.payload.decode()
         )
-    #print(data)
+        print(data)
         topic_parts = data['topic'].split('/')
         sensor_type = topic_parts[1]
         sensor_id = topic_parts[2]
@@ -556,14 +590,14 @@ def handle_mqtt_message(client, userdata, message):
 
     #t = threading.Thread(target=insert_reading, args=(sensor_type, sensor_id, data['payload']))
     #t.start()
-
+'''
 @socketio.on('actuator_command')
 def handle_actuator_command(data):
     try:
         actuator_type = data['type']
         actuator_id = data['id']
         actuator_value = data['value']
-        mqtt.publish(f'micropolis/{actuator_type}/{actuator_id}', actuator_value)
+        mqtt_client.publish(f'micropolis/{actuator_type}/{actuator_id}', actuator_value)
     except :
         print("error in send mqtt command")
 
