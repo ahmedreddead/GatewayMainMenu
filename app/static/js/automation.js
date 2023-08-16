@@ -10,6 +10,9 @@ var OkItem = document.getElementById('okButton');
 var addAutomationBtn = document.getElementById('addAutomationBtn');
 
 
+var graphsButton  = document.getElementById('graphsButton');
+var graphsDiv  = document.getElementById('graphs_div');
+
 
 var NetworkAnimation = document.getElementById('network-animation');
 
@@ -24,6 +27,8 @@ automationButton.addEventListener('click', function () {
     OkItem.style.display = 'none';
     addAutomationBtn.style.display = 'block';
     NetworkAnimation.style.display = 'none';
+    graphsDiv.style.display = 'none';
+
 
 });
 homeButton.addEventListener('click', function () {
@@ -34,9 +39,20 @@ homeButton.addEventListener('click', function () {
     addItem.style.display = 'flex';
     addAutomationBtn.style.display = 'none';
     NetworkAnimation.style.display = 'block';
+    graphsDiv.style.display = 'none';
 
 
-
+});
+graphsButton.addEventListener('click', function () {
+    // Toggle the visibility of the automation table
+    automationTable.style.display = 'none';
+    dashboardContainer.style.display = 'none';
+    addItem.style.display = 'none';
+    EditItem.style.display = 'none';
+    OkItem.style.display = 'none';
+    addAutomationBtn.style.display = 'none';
+    NetworkAnimation.style.display = 'none';
+    graphsDiv.style.display = 'block';
 
 });
         // Function to create a table row for an item

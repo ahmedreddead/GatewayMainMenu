@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import mysql.connector
 from mysql.connector import Error
 
@@ -827,4 +829,33 @@ END
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
             return error
+
+    def get_sensor_data_by_time(self, type , id , start_time , end_time):
+        try:
+            cursor = self.connection.cursor()
+            check_query = f"SELECT * FROM {type} WHERE sensorid = %s AND date_time BETWEEN %s AND %s "
+
+            cursor.execute(check_query, (id , start_time, end_time))
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+    def get_actuator_data_by_time(self, type , id , start_time , end_time):
+        try:
+            cursor = self.connection.cursor()
+            check_query = f"SELECT * FROM {type} WHERE actuatorid = %s AND date_time BETWEEN %s AND %s "
+
+            cursor.execute(check_query, (id , start_time, end_time))
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as error:
+            print("Failed to insert into MySQL table {}".format(error))
+            return error
+
+
+
+
+
 

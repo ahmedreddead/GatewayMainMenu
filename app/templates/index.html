@@ -89,6 +89,8 @@
     <link rel="stylesheet" href="static/css/styles.css">
     <link rel="stylesheet" href="static/css/automation.css">
     <link rel="stylesheet" href="static/css/eventsButton.css">
+    <link rel="stylesheet" href="static/css/graphs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 </head>
 <body>
@@ -109,15 +111,14 @@
         </button>
         <button class="automation-button" id="automationButton">
             <a >Automation</a>
-
         </button>
 
-        <button class="automation-button" id="automationButton">
+        <button class="automation-button" id="graphsButton">
             <a>Graphs</a>
         </button>
 
-        <button class="automation-button" id="automationButton">
-            <a >Settings</a>
+        <button class="automation-button" id="settingsButton">
+            <a>Settings</a>
         </button>
         
 
@@ -388,6 +389,19 @@
 
 
 
+    <div id="graphs_div">
+        <div>
+            <input type="text" id="start-time" class="custom-input" placeholder="Start Date and Time">
+            <input type="text" id="end-time" class="custom-input" placeholder="End Date and Time">
+            <button class="custom-button" onclick="fetchAndDrawGraph()">Show Graph</button>
+        </div>
+        <div id="graph-container"></div>
+    </div>
+
+
+
+    </div>
+
 
 
 
@@ -397,6 +411,10 @@
 
     <button id="editButton">Edit</button>
     <button id="okButton">OK</button>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
@@ -415,6 +433,7 @@
         var actions_data = {{ actions_data |safe  }};
     </script>
 
+    <script src="static/js/graphs.js"></script>
     <script src="static/js/eventsButton.js"></script>
     <script src="static/js/eventsTable.js"></script>
     <script src="static/js/network-animation.js"></script>

@@ -21,7 +21,7 @@ page_loaded = False
 
 
 host = '10.20.0.197'
-mqtt_broker = "localhost"  # Replace with your broker's IP or hostname
+mqtt_broker = "10.20.0.183"  # Replace with your broker's IP or hostname
 mqtt_port = 1883
 mqtt_client = ''
 
@@ -75,6 +75,47 @@ def add_cache_control(response):
 
     return response
 
+
+def get_all_data_by_time(start_time, end_time):
+    all_data = []
+    object = create_database_object()
+
+    items = session['item_locations']
+
+    for item in items:
+        data = []
+        if item['type'] == 'siren':  # Add other types as needed
+            data = object.get_actuator_data_by_time(item['type'], item['itemId'], start_time, end_time)
+        elif item['type'] == 'switch' or item['type'] == 'relay_switch':  # Add other types as needed
+            item['type'] = 'relay_switch'
+            data = object.get_actuator_data_by_time(item['type'], item['itemId'], start_time, end_time)
+        else:
+            if item['type'] == 'glass_break':
+                item['type'] = 'glass_sensor'
+            if item['type'] == 'temperature':
+                item['type'] = 'temperature_sensor'
+            print(item['type'])
+            data = object.get_sensor_data_by_time(item['type'], item['itemId'], start_time, end_time)
+
+        all_data.append({'item': item, 'data': data})
+        print(all_data)
+
+    object.disconnect()
+
+    return all_data
+
+
+@app.route('/api/all_data', methods=['GET'])
+def get_all_data():
+    start_time = request.args.get('start_time', (datetime.datetime.now() - timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%S')
+)
+    end_time = request.args.get('end_time', datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+)
+    #end_time = datetime.datetime.now()
+    #start_time = end_time - timedelta(hours=24)
+
+    all_data = get_all_data_by_time(start_time, end_time)
+    return jsonify(all_data)
 
 @app.route('/delete_automation', methods=['POST'])
 def delete_automation():
@@ -464,7 +505,6 @@ def logout():
     session.clear()  # Clear the session
     return redirect(url_for('login'))
 
-
 def check_session_parameters() :
     # Access session in the WebSocket connection
     if 'first_load' not in session:  # Check if it's the first client connection
@@ -487,6 +527,7 @@ def check_session_parameters() :
             update_process_location(session['item_locations'],object)
 
     session['count'] = len(session['item_locations'])
+    print(session['item_locations'])
 
 
     max_partition = max(int(d['partitionId'].split('-')[1]) for d in session['item_locations'])

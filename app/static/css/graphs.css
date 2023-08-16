@@ -1,0 +1,22 @@
+.custom-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* Style the input fields */
+.custom-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Hide the graph div by default */
+#graphs_div {
+    display: none;
+    text-align: center; /* Center the contents horizontally */
+    margin-top: 50px; /* Add some top margin for spacing */
+}
