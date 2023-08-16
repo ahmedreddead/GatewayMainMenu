@@ -1,3 +1,14 @@
+.graph-container {
+    display: inline-grid;
+    justify-content: space-between;
+    margin: 20px;
+}
+
+.graph {
+    width: 48%; /* Each graph takes up 48% of the container width */
+    padding: 10px;
+    box-sizing: border-box;
+}
 .custom-button {
     background-color: #007bff;
     color: #fff;
