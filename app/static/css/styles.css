@@ -9,8 +9,18 @@ body {
   padding: 0;
   background-color: #f2f2f2; /* Set the background color to the color of the paper */
 animation: shinyAnimation 3s ease-in-out infinite;
+    -webkit-overflow-scrolling: unset;
+    -webkit-scroll-snap-type: inline;
+
+}
+.body::-webkit-scrollbar {
+    width: 12px; /* adjust this width as needed */
+    background-color: transparent; /* Set the background color to transparent */
 }
 
+.body::-webkit-scrollbar-thumb {
+    background-color: transparent; /* Set the thumb color to transparent */
+}
         @keyframes shinyAnimation {
   0% {
     background-color: #f2f2f2 ; /* Baby blue */
