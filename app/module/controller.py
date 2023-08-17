@@ -94,11 +94,9 @@ def get_all_data_by_time(start_time, end_time):
                 item['type'] = 'glass_sensor'
             if item['type'] == 'temperature':
                 item['type'] = 'temperature_sensor'
-            print(item['type'])
             data = object.get_sensor_data_by_time(item['type'], item['itemId'], start_time, end_time)
 
         all_data.append({'item': item, 'data': data})
-        print(all_data)
 
     object.disconnect()
 
