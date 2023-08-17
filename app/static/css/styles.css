@@ -72,15 +72,7 @@ animation: shinyAnimation 3s ease-in-out infinite;
             padding: 0 10px;
 }
 
-        .logo {
-            width: 50px;
-            height: 50px;
-            background-image: url("{{ url_for('static', filename='photo/micropolis.png') }}");
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            margin-left: 15px;
-        }
+
 
         #data {
             display: grid;

@@ -16,21 +16,21 @@ function mapStatusToValue(status) {
         case 'on':
             return 10;
         case 'off':
-            return 1;
+            return 0;
         case 'Motion Detected':
             return 10;
         case 'No Motion':
-            return 1;
+            return 0;
         case 'opened':
             return 10;
         case 'closed':
-            return 1;
+            return 0;
         case 'No Glass Break ':
-            return 1;
+            return 0;
 
         // Add more cases for other status values
         default:
-            return 0 ; // Use black for unknown statuses
+            return 0; // Use black for unknown statuses
     }
 }
 function fetchAndDrawGraph() {
@@ -54,36 +54,54 @@ function fetchAndDrawGraph() {
                     var graphData = [];
 
                     var currentStatus = -1; // Initialize to an invalid value
-                    var startTime = null;
-                    var endTime = null;
-                    var statusLabel = ''; // Initialize status label
+                    var startTime1 = null;
+                    var endTime1 = null;
+                    var color = null;
 
-                    itemData.data.forEach(item => {
+                    itemData.data.forEach((item, index) => {
                         var timestamp = new Date(item[2]);
                         var statusValue = mapStatusToValue(item[1]);
 
-                        if (statusValue !== currentStatus) {
-                            if (currentStatus === 1) {
-                                // End of an "on" interval
-                                endTime = timestamp;
-                            } else {
-                                // Start of an "on" interval
-                                startTime = timestamp;
-                                statusLabel = getStatusLabel(itemData.item.type, statusValue); // Get status label based on sensor type
+                        if (statusValue === currentStatus) {
+                            endTime1 = timestamp; // Extend the interval
+                        } else {
+                            if (currentStatus !== -1) {
+                                // Create a single bar for the interval with color based on status value
+                                graphData.push({
+                                    x: [startTime1, endTime1],
+                                    y: [1, 1],
+                                    type: 'bar',
+                                    opacity: 0.6,
+                                    hoverinfo: 'none',
+                                    showlegend: false,
+                                    marker: {
+                                        color: color
+                                    }
+                                });
                             }
 
-                            // Create a single bar for the interval
+                            // Start a new interval
+                            currentStatus = statusValue;
+                            startTime1 = timestamp;
+                            endTime1 = timestamp;
+                            color = currentStatus === 10 ? '#ff0000' : '#0073e6'; // Red or blue shade
+                        }
+
+                        // Check if this is the last data point
+                        if (index === itemData.data.length - 1) {
+                            // Create a bar from the last data point to the current time
+                            var currentTime = new Date();
                             graphData.push({
-                                x: [startTime, endTime],
+                                x: [timestamp, currentTime],
                                 y: [1, 1],
                                 type: 'bar',
-                                opacity: 0.6, // Adjust the opacity as needed
-                                hoverinfo: 'none', // Disable hover info for clarity
-                                name: statusLabel, // Display customized status label
-                                showlegend: false, // Hide legend entry
+                                opacity: 0.6,
+                                hoverinfo: 'none',
+                                showlegend: false,
+                                marker: {
+                                    color: color
+                                }
                             });
-
-                            currentStatus = statusValue;
                         }
                     });
 
@@ -91,10 +109,10 @@ function fetchAndDrawGraph() {
                         title: `${itemData.item.type} - ${itemData.item.itemId}`,
                         xaxis: {title: 'Time'},
                         yaxis: {title: 'Status'},
-                        barmode: 'overlay', // Overlay bars instead of stacking,
-                        annotations: [] ,// Clear annotations
-                        width: 600, // Adjust the width of the graph
-                        height: 400, // Adjust the height of the graph
+                        barmode: 'overlay',
+                        annotations: [],
+                        width: 600,
+                        height: 400
                     };
 
                     Plotly.newPlot(graphContainer.id, graphData, layout, {responsive: true, displayModeBar: false});
@@ -107,12 +125,11 @@ function fetchAndDrawGraph() {
     });
 
 }
-
 // Function to get status label based on sensor type
 function getStatusLabel(sensorType, statusValue) {
-    if (sensorType === 'door') {
-        return statusValue === 1 ? 'Opened' : 'Closed';
-    } else if (sensorType === 'motion') {
+    if (sensorType === 'door_sensor') {
+        return statusValue === 1 ? 'opened' : 'closed';
+    } else if (sensorType === 'motion_sensor') {
         return statusValue === 1 ? 'Motion Detected' : 'No Motion';
     }
     return ''; // Default label if sensor type is not recognized
