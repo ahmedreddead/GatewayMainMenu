@@ -9,6 +9,15 @@ var EditItem = document.getElementById('editButton');
 var OkItem = document.getElementById('okButton');
 var addAutomationBtn = document.getElementById('addAutomationBtn');
 
+
+var graphsButton  = document.getElementById('graphsButton');
+var graphsDiv  = document.getElementById('graphs_div');
+
+
+var NetworkAnimation = document.getElementById('network-animation');
+
+
+
 automationButton.addEventListener('click', function () {
     // Toggle the visibility of the automation table
     automationTable.style.display = 'block';
@@ -17,6 +26,9 @@ automationButton.addEventListener('click', function () {
     EditItem.style.display = 'none';
     OkItem.style.display = 'none';
     addAutomationBtn.style.display = 'block';
+    NetworkAnimation.style.display = 'none';
+    graphsDiv.style.display = 'none';
+
 
 });
 homeButton.addEventListener('click', function () {
@@ -26,8 +38,21 @@ homeButton.addEventListener('click', function () {
     EditItem.style.display = 'block';
     addItem.style.display = 'flex';
     addAutomationBtn.style.display = 'none';
+    NetworkAnimation.style.display = 'block';
+    graphsDiv.style.display = 'none';
 
 
+});
+graphsButton.addEventListener('click', function () {
+    // Toggle the visibility of the automation table
+    automationTable.style.display = 'none';
+    dashboardContainer.style.display = 'none';
+    addItem.style.display = 'none';
+    EditItem.style.display = 'none';
+    OkItem.style.display = 'none';
+    addAutomationBtn.style.display = 'none';
+    NetworkAnimation.style.display = 'none';
+    graphsDiv.style.display = 'block';
 
 });
         // Function to create a table row for an item
@@ -62,16 +87,16 @@ $(document).on('click', '.deleteBtn', function () {
     var itemId = $(this).data('id');
             // Perform AJAX call to Flask API to delete the item with itemId
             // Example AJAX call:
-            // $.ajax({
-            //     type: 'DELETE',
-            //     url: '/api/delete_item/' + itemId,
-            //     success: function (response) {
-            //         // Handle success response
-            //     },
-            //     error: function (error) {
-            //         // Handle error response
-            //     }
-            // });
+            $.ajax({
+                 type: 'DELETE',
+                 url: '/api/delete_automation/' + itemId,
+                 success: function (response) {
+                     // Handle success response
+                 },
+                 error: function (error) {
+                     // Handle error response
+                 }
+             });
 });
 
 $(document).on('click', '.activateBtn', function () {

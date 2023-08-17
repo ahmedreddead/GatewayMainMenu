@@ -212,7 +212,13 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`)
 ) ;
 
-
+CREATE TABLE `humidity` (
+  `sensorid` int(11) NOT NULL,
+  `humidity` int(11) NOT NULL,
+  `date_time` datetime DEFAULT NULL,
+  KEY `sensorid` (`sensorid`),
+  CONSTRAINT `humidity_sensor_ibfk_1` FOREIGN KEY (`sensorid`) REFERENCES `sensors` (`sensorid`)
+)
 
 
 

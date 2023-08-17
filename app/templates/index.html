@@ -4,6 +4,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
     <style>
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-image: url("{{ url_for('static', filename='photo/micropolis.png') }}");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin-left: 15px;
+        }
         .dashboard {
             display: flex;
             flex-wrap: wrap;
@@ -89,11 +98,13 @@
     <link rel="stylesheet" href="static/css/styles.css">
     <link rel="stylesheet" href="static/css/automation.css">
     <link rel="stylesheet" href="static/css/eventsButton.css">
+    <link rel="stylesheet" href="static/css/graphs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 </head>
 <body>
 
-    <svg class="network-animation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+    <svg class="network-animation" id = "network-animation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
     <!-- Add more circles as needed -->
   </svg>
 
@@ -110,6 +121,14 @@
         <button class="automation-button" id="automationButton">
             <a >Automation</a>
         </button>
+
+        <button class="automation-button" id="graphsButton">
+            <a>Graphs</a>
+        </button>
+
+        <button class="automation-button" id="settingsButton">
+            <a>Settings</a>
+        </button>
         
 
     </div>
@@ -121,12 +140,12 @@
             <table class="table table-bordered mt-3">
                 <thead class="thead-dark">
                 <tr>
-                    <th>Event ID</th>
+                    <!-- <th>Event ID</th> -->
                     <th>Event Door</th>
                     <th>Event Motion</th>
-                    <th>Action ID</th>
+                    <!-- <th>Action ID</th> -->
                     <th>Actions</th>
-                    <th>Deactivate/Activate</th>
+                    <!-- <th>Deactivate/Activate</th> -->
                     <th>Delete</th>
                 </tr>
                 </thead>
@@ -134,7 +153,7 @@
                 {% set counter = 0 %}
                 {% for row in data %}
                 <tr>
-                    <td>{{ row[0] }}</td>
+                    <!-- <td>{{ row[0] }}</td> -->
 
                     <td>
                         <table class="table table-sm table-bordered">
@@ -182,7 +201,7 @@
 
 
                     </td>
-                    <td>{{ row[3] }}</td>
+                    <!-- <td>{{ row[3] }}</td> -->
 
 
                     <td>
@@ -215,7 +234,7 @@
 
                     </td>
 
-                    <td>
+                    <!-- <td>
                         <button class="btn btn-primary btn-sm" onclick="toggleActivation(this, {{ row[3] }})">
                             {% if row[7] %}
                             Activate
@@ -223,8 +242,8 @@
                             Deactivate
                             {% endif %}
                         </button>
-                    </td>
-                    <td><button class="btn btn-danger btn-sm" onclick="deleteAction({{ row[3] }})">Delete</button></td>
+                    </td> -->
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteAction({{ row[0] }} , {{ row[3] }} )">Delete</button></td>
                 </tr>
                     {% set counter = counter + 1 %}
 
@@ -379,6 +398,19 @@
 
 
 
+    <div id="graphs_div">
+        <div>
+            <input type="text" id="start-time" class="custom-input" placeholder="Start Date and Time">
+            <input type="text" id="end-time" class="custom-input" placeholder="End Date and Time">
+            <button class="custom-button" onclick="fetchAndDrawGraph()">Show Graph</button>
+        </div>
+        <div id="graph-container" >
+        </div>
+
+
+
+    </div>
+
 
 
 
@@ -388,6 +420,10 @@
 
     <button id="editButton">Edit</button>
     <button id="okButton">OK</button>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
@@ -406,6 +442,7 @@
         var actions_data = {{ actions_data |safe  }};
     </script>
 
+    <script src="static/js/graphs.js"></script>
     <script src="static/js/eventsButton.js"></script>
     <script src="static/js/eventsTable.js"></script>
     <script src="static/js/network-animation.js"></script>

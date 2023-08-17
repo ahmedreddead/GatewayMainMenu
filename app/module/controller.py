@@ -3,27 +3,16 @@ import json
 import threading
 import time
 import random
-
 from flask import render_template, request, jsonify
 from app import app,socketio
-
-from flask_mqtt import Mqtt
 from app.module import database
 from flask import session
-
 from flask import redirect, url_for
 from datetime import timedelta
+import paho.mqtt.client as mqtt
 
-
-app.config['MQTT_BROKER_URL'] = 'localhost'
-app.config['MQTT_BROKER_PORT'] = 1883
-app.config['MQTT_USERNAME'] = ''
-app.config['MQTT_PASSWORD'] = ''
-app.config['MQTT_KEEPALIVE'] = 5
-app.config['MQTT_TLS_ENABLED'] = False
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)  # Set session duration (e.g., 7 days)
-mqtt = Mqtt(app)
 sensor_data = {}
 sensor_types = [ 'temperature', 'humidity', 'motion_sensor', 'door_sensor', 'glass_break' ,'switch', 'siren']
 sensor_counts = {}
@@ -31,7 +20,108 @@ is_first_load = True
 page_loaded = False
 
 
-host = '10.20.0.169'
+host = '10.20.0.197'
+mqtt_broker = "10.20.0.183"  # Replace with your broker's IP or hostname
+mqtt_port = 1883
+mqtt_client = ''
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected to MQTT Broker")
+
+def on_message(client, userdata, message):
+    try:
+        global sensor_data
+        data = dict(
+            topic=message.topic,
+            payload=message.payload.decode()
+        )
+        topic_parts = data['topic'].split('/')
+        sensor_type = topic_parts[1]
+        sensor_id = topic_parts[2]
+        if sensor_type not in sensor_data:
+            sensor_data[sensor_type] = {}
+        sensor_data[sensor_type][sensor_id] = data['payload']
+        socketio.emit(f'{sensor_type}_data', json.dumps(sensor_data[sensor_type]))
+        insert_reading(sensor_type, sensor_id, data['payload'])
+
+    except:
+        print("error in mqtt socket sender")
+
+def mqtt_client_thread():
+    global mqtt_client
+    mqtt_client = mqtt.Client()
+    mqtt_client.on_connect = on_connect
+    mqtt_client.on_message = on_message
+    mqtt_client.connect(mqtt_broker, mqtt_port, 60)
+    mqtt_client.subscribe("#")
+    mqtt_client.loop_forever()
+
+mqtt_thread = threading.Thread(target=mqtt_client_thread)
+mqtt_thread.daemon = True  # Set the thread as a daemon so it exits when the main program exits
+mqtt_thread.start()
+
+
+
+@socketio.on("connect")
+def handle_connect():
+    print("Client connected to Socket.IO")
+
+@app.after_request
+def add_cache_control(response):
+
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
+    return response
+
+
+def get_all_data_by_time(start_time, end_time):
+    all_data = []
+    object = create_database_object()
+
+    items = session['item_locations']
+
+    for item in items:
+        data = []
+        if item['type'] == 'siren':  # Add other types as needed
+            data = object.get_actuator_data_by_time(item['type'], item['itemId'], start_time, end_time)
+        elif item['type'] == 'switch' or item['type'] == 'relay_switch':  # Add other types as needed
+            item['type'] = 'relay_switch'
+            data = object.get_actuator_data_by_time(item['type'], item['itemId'], start_time, end_time)
+        else:
+            if item['type'] == 'glass_break':
+                item['type'] = 'glass_sensor'
+            if item['type'] == 'temperature':
+                item['type'] = 'temperature_sensor'
+            data = object.get_sensor_data_by_time(item['type'], item['itemId'], start_time, end_time)
+
+        all_data.append({'item': item, 'data': data})
+
+    object.disconnect()
+
+    return all_data
+
+
+@app.route('/api/all_data', methods=['GET'])
+def get_all_data():
+    start_time = request.args.get('start_time', (datetime.datetime.now() - timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%S')
+)
+    end_time = request.args.get('end_time', datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+)
+    #end_time = datetime.datetime.now()
+    #start_time = end_time - timedelta(hours=24)
+
+    all_data = get_all_data_by_time(start_time, end_time)
+    return jsonify(all_data)
+
+@app.route('/delete_automation', methods=['POST'])
+def delete_automation():
+    data = request.get_json()
+    object = create_database_object()
+    object.delete_automation(data['event_id'], data['action_id'])
+    object.delete_trigger(data['event_id'])
+    return jsonify({'message': 'Data received successfully.'})
 
 def create_new_automation (Actions , Events) :
     insert_event_flag = 0
@@ -39,6 +129,7 @@ def create_new_automation (Actions , Events) :
     event_id = 0
     action_id = 0
     user_id = session['user_id']
+
     try:
         while not insert_event_flag :
             object = create_database_object()
@@ -57,9 +148,11 @@ def create_new_automation (Actions , Events) :
         object = create_database_object()
 
         object.insert_new_automation(event_id,action_id,user_id)
+
         for dic in Events:
             if dic['type'] == 'motion_sensor':
-                object.insert_motion_event(event_id, dic['id'], dic['status'])
+                status = 'Motion Detected'
+                object.insert_motion_event(event_id, dic['id'], status)
             elif dic['type'] == 'door_sensor':
                 object.insert_door_event(event_id, dic['id'], dic['status'])
 
@@ -70,8 +163,13 @@ def create_new_automation (Actions , Events) :
                 object.insert_action_switch(index+1, action_id, dic['id'], dic['status'])
             elif dic['type'] == 'delay':
                 object.insert_action_delay(index+1, action_id, dic['delay'])
-    except :
-        print("A7a")
+
+        object.insert_trigger(event_id,action_id)
+
+
+    except Exception as e :
+        print("error" , e)
+        return 400
 
     return 200
 
@@ -84,8 +182,7 @@ def save_data():
 
     # Process the events and actions data as needed
     # For demonstration purposes, we'll just print the data
-    print("Events:", events)
-    print("Actions:", actions)
+
     response =create_new_automation(actions,events)
 
     if response == 200 :
@@ -195,7 +292,6 @@ def data_to_json(data_string) :
         data_json = json.dumps([], indent=2)
         return data_json
     data_list = []
-    print(data_string)
     if '],[' in str(data_string) :
         for item in data_string.split('],['):
             id, status = item.strip('[]').split(',')
@@ -326,14 +422,10 @@ def delete_item () :
         response = {'message': 'item added '}
         return jsonify(response), 200
 
-@app.before_request
-def check_first_load():
-    pass
 
 def get_data_database ():
     global  sensor_counts
-    object = database.Database(host, 3306, "grafana", "pwd123", "grafanadb")
-    object.connect()
+    object = create_database_object()
     sensor_counts = {key: [] for key in sensor_types}
 
     cursor = object.connection.cursor()
@@ -366,13 +458,11 @@ def get_data_From_dashboard(object):
         if row['name'] != 'temp' :
             sensor_counts[row['name']].append(row['id'])
     sensor_counts = {key: value for key, value in sensor_counts.items() if value}
-    print(sensor_counts)
     session["sensor_counts"] = sensor_counts
     return sensor_counts
 
 def validate_credentials(username, password):
-    object = database.Database(host, 3306, "grafana", "pwd123", "grafanadb")
-    object.connect()
+    object = create_database_object()
 
     cursor = object.connection.cursor()
     check_query = "SELECT id FROM users WHERE name = %s AND password = %s"
@@ -384,7 +474,7 @@ def validate_credentials(username, password):
 
     return user_id
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST','GET'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -399,8 +489,8 @@ def login():
             session['user_id'] = user_id
             session['dashboard_id'] = 1
             session.permanent = True  # Enable permanent session
-            #return redirect(url_for('index'))
-            return index()
+            return redirect(url_for('index'))
+            #return index()
         else:
             error_message = "Invalid username or password"
     else:
@@ -412,12 +502,6 @@ def login():
 def logout():
     session.clear()  # Clear the session
     return redirect(url_for('login'))
-
-@socketio.on('connect')
-def handle_connect():
-    # Access session in the WebSocket connection
-    if 'first_load' not in session:  # Check if it's the first client connection
-        session['first_load'] = False
 
 def check_session_parameters() :
     # Access session in the WebSocket connection
@@ -441,6 +525,7 @@ def check_session_parameters() :
             update_process_location(session['item_locations'],object)
 
     session['count'] = len(session['item_locations'])
+    print(session['item_locations'])
 
 
     max_partition = max(int(d['partitionId'].split('-')[1]) for d in session['item_locations'])
@@ -475,16 +560,13 @@ def index():
     check_session_parameters()
     if 'username' not in session:
         return redirect(url_for('login'))
-
     count = session.get('count')
     partition_width  = 200
     partition_height = 200
-
     padding = 50
     numPerRow = 4
-    numItems = ( count // numPerRow )+ 6
+    numItems = ( count // numPerRow )+ 1
     len_items = count  # Replace with the actual number of items
-    print(session['events_and_actions'] )
     door_event_data = []
     motion_event_data = []
     actions_data = []
@@ -505,7 +587,6 @@ def index():
     actions_data_parsed = [json.loads(action) for action in actions_data]
     door_data_parsed = [json.loads(door) for door in door_event_data]
     motion_data_parsed = [json.loads(motion) for motion in motion_event_data]
-    print(actions_data_parsed)
 
     if 'username' in session:
         # User is already logged in, render the user page
@@ -516,84 +597,48 @@ def index():
 
 @app.route('/data')
 def data():
+    print(sensor_data)
     return jsonify(sensor_data)
-
-@app.route('/user')
-def user():
-    global page_loaded
-    """
-    sensor_counts = {
-        'door_sensor': [1, 2],
-        'motion_sensor': [1, 2] ,
-        'switch' : [33] ,
-        'siren' : [55 ]
-        # add more sensor types and IDs here
-    }"""
-    global is_first_load, sensor_counts
-    first_load = session.get('first_load')
-    sensor_counts = session.get('sensor_counts',False)
-    print(sensor_counts)
-
-    if is_first_load:
-        # Perform the initialization tasks here
-        sensor_counts = get_data_From_dashboard()
-        for sensor_type in list(sensor_counts.keys()):
-            for sensor_id in sensor_counts.get(sensor_type, []):
-                #topic = f"micropolis/{sensor_type}/{sensor_id}"
-                #mqtt.publish(topic, "unknown")
-                #time.sleep(0.1)
-                pass
-
-        # Update the flag to indicate that the initialization has been done
-        is_first_load = False
-    """
-    first_load = session.get('first_load')
-    if not session or not first_load :
-        session['first_load'] = True
-        sensor_counts = get_data_database()
-        # Publish initial "unknown" status for each sensor and actuator
-        for sensor_type in list (sensor_counts.keys()):
-            for sensor_id in sensor_counts.get(sensor_type, []):
-                topic = f"micropolis/{sensor_type}/{sensor_id}"
-                mqtt.publish(topic, "unknown")
-    """
-    if 'username' in session:
-        # User is already logged in, render the user page
-        return render_template('user.html', username=session['username'], sensor_counts=sensor_counts,page_loaded=page_loaded)
-    else:
-        # User is not logged in, redirect to the login page
-        return redirect(url_for('login'))
-
+'''
 @mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
-    mqtt.subscribe('#')
+    try:
+        mqtt.subscribe('#')
+    except :
+        print("error in mqtt listener")
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
-    data = dict(
-        topic=message.topic,
-        payload=message.payload.decode()
-    )
-    #print(data)
-    topic_parts = data['topic'].split('/')
-    sensor_type = topic_parts[1]
-    sensor_id = topic_parts[2]
-    if sensor_type not in sensor_data:
-        sensor_data[sensor_type] = {}
-    sensor_data[sensor_type][sensor_id] = data['payload']
-    socketio.emit(f'{sensor_type}_data', json.dumps(sensor_data[sensor_type]))
-
-    insert_reading(sensor_type, sensor_id, data['payload'])
+    try:
+        global sensor_data
+        data = dict(
+        topic = message.topic,
+        payload = message.payload.decode()
+        )
+        print(data)
+        topic_parts = data['topic'].split('/')
+        sensor_type = topic_parts[1]
+        sensor_id = topic_parts[2]
+        if sensor_type not in sensor_data:
+            sensor_data[sensor_type] = {}
+        sensor_data[sensor_type][sensor_id] = data['payload']
+        socketio.emit(f'{sensor_type}_data', json.dumps(sensor_data[sensor_type]))
+        insert_reading(sensor_type, sensor_id, data['payload'])
+    except :
+        print("error in mqtt socket sender")
 
     #t = threading.Thread(target=insert_reading, args=(sensor_type, sensor_id, data['payload']))
     #t.start()
-
+'''
 @socketio.on('actuator_command')
 def handle_actuator_command(data):
-    actuator_type = data['type']
-    actuator_id = data['id']
-    actuator_value = data['value']
-    mqtt.publish(f'micropolis/{actuator_type}/{actuator_id}', actuator_value)
+    try:
+        actuator_type = data['type']
+        actuator_id = data['id']
+        actuator_value = data['value']
+        mqtt_client.publish(f'micropolis/{actuator_type}/{actuator_id}', actuator_value)
+    except :
+        print("error in send mqtt command")
 
 def do_action (action_id, object ) :
     actons = object.get_actions(action_id)
@@ -639,27 +684,6 @@ def check_push_alerts():
             print("Error in push alerts:", e)
             object = create_database_object()
 
-def create_event() :
-    dictionary =  [{'motion_sensor':'1213'},{'door_sensor' : '1212' , 'status' : 'on'}]
-    dictionary_action =  [{'siren' },{'door_sensor' : '1212' , 'status' : 'on'}]
-    object = create_database_object()
-    object.insert_event_motion(dictionary)
-
-def create_action():
-    pass
-
-def get_events_details () :
-
-    # { [ eventid : 556 , name : secure , description : [{sirenid : 5564 , status : on } , {delay : 5 } , {sirenid : 545 , status : off}] ,..... }
-    object = create_database_object()
-    result = object.get_events_by_user(session.get('user_id'))
-
-    print(result)
-
-
-
-
-    pass
 
 
 

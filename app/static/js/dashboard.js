@@ -60,6 +60,11 @@ function updateActuatorData(actuatorType, actuatorData) {
             for (let actuatorId in actuatorData) {
                 let actuatorElementId = actuatorId;
                 let actuatorElement = document.getElementById(actuatorElementId);
+                if (actuatorElement !== null) {
+                    console.log("Element found:", actuatorElement.innerHTML);
+                } else {
+                    console.log("Element not found.");
+                }
                 if (actuatorElement) {
                     let actuatorValue = actuatorData[actuatorId];
                     let lastUpdated = new Date().toLocaleTimeString();
@@ -88,7 +93,17 @@ function toggleActuator(actuatorType, actuatorId) {
                 newActuatorValue = 'off';
                 actuatorElement.setAttribute('data-value', newActuatorValue);
             }
-            socket.emit('actuator_command', {
+            /*
+    console.log(newActuatorValue);
+    actuatorElement.innerHTML = `
+                        <div class="actuator">
+                            ${getActuatorIcon(actuatorType, newActuatorValue)}
+                            <div class="actuator-name">${actuatorType} ${actuatorId}</div>
+                            <div class="actuator-value">${newActuatorValue || 'Unknown'}</div>
+                        </div>
+                    `;
+*/
+    socket.emit('actuator_command', {
                 type: actuatorType,
                 id: actuatorId,
                 value: newActuatorValue

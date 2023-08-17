@@ -88,8 +88,13 @@ $(document).ready(function() {
             
             }
                      });
-});
 
+
+
+
+
+
+});
 
 
 
@@ -109,48 +114,47 @@ for (var i = 0; i < numItems; i++) {
 
 
 itemLocations.forEach(function(location) {
-var icon;
-if (location.type === 'siren' || location.type === 'switch') {
+    var icon;
+    var item;
+    if (location.type === 'siren' || location.type === 'switch') {
         icon = getActuatorIcon(location.type, 'off');
-} else {
-        if (location.type === 'door_sensor')
-        {
-            icon = getSensorIcon(location.type, 'opened');
-        }
+    } else if (location.type === 'door_sensor')
+    {
+        icon = getSensorIcon(location.type, 'opened');
+    }
     else if (location.type === 'motion_sensor')
     {
         icon = getSensorIcon(location.type, 'No Motion');
     }
     else {
         icon = getSensorIcon(location.type, 'No Motion');
-
-    }
-                
     }
 
-    if (location.type === 'siren' || location.type === 'switch') {
+    if (location.type == 'siren' || location.type == 'switch') {
+        console.log(location.type , location.itemId)
         item = $('<div class="actuator dashboard-item">' + icon + location.type + ' ' + location.itemId + '</div>').click(function() {
             toggleActuator(location.type, location.itemId);
         });
-    } else {
-        item = $('<div class="sensor dashboard-item">' + icon + location.type + ' ' + location.itemId + '</div>');
-    }
-            
-            
-    item.attr('id', location.itemId);
-    var partition = $('#' + location.partitionId);
-    partition.append(item);
-            
-    if (location.type == 'switch' || location.type == 'siren' ) {
         socket.on(`${location.type}_data`, function (data) {
             let actuatorData = JSON.parse(data);
             updateActuatorData(location.type, actuatorData);
         });
 
     } else {
+        item = $('<div class="sensor dashboard-item">' + icon + location.type + ' ' + location.itemId + '</div>');
         socket.on(`${location.type}_data`, function (data) {
             let sensorData = JSON.parse(data);
             updateSensorData(location.type, sensorData);
         });
+
     }
+    item.attr('id', location.itemId);
+    var partition = $('#' + location.partitionId);
+    partition.append(item);
+
+
+
 });
+
+
+
