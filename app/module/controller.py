@@ -23,10 +23,6 @@ page_loaded = False
 host = 'localhost'
 mqtt_broker = "localhost"  # Replace with your broker's IP or hostname
 
-#host = '192.168.8.100'
-#mqtt_broker = "192.168.8.100"  # Replace with your broker's IP or hostname
-
-
 mqtt_port = 1883
 mqtt_client = ''
 
